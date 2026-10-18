@@ -59,7 +59,11 @@
     height:3px; border-radius:2px; background:currentColor;
   }
   .hbtn{ position:relative; }
-  .odometer{ display:none; }          /* no room for it next to pipo */
+  /* The odometer used to be display:none in here, noted "no room for
+     it next to pipo". But the odometer is pinned bottom-LEFT and
+     Pipo's dock is bottom-RIGHT — they never actually collided.
+     Hiding it meant every phone visitor never saw the counter at all,
+     which is a shame now that it counts real visits. */
 }
 @media (max-width:700px) and (orientation:landscape){
   .hud{ padding:.25rem .6rem; }
@@ -101,7 +105,10 @@
   line-height:1.35em; color:#ffd9e4; padding:0 .04em;
 }
 .odometer.is-rolling .odometer__wheel{ color:#fff; }
-@media (max-width:700px){ .odometer{ font-size:.55rem; transform:scale(.92); transform-origin:bottom left; } }
+/* Phones get the same size as desktop, not smaller. Shrinking it here
+   took the digits down to roughly 7px, which is not a number anyone
+   can read. It is a small badge by design, not a shrunken one. */
+@media (max-width:700px){ .odometer{ font-size:.62rem; transform:none; bottom:.5rem; } }
 
 /* •••••••••••••••••••••••••• BUTTONS •••••••••••••••••••••••••• */
 .btn{
@@ -994,7 +1001,8 @@ button.proj[aria-pressed="true"]{ outline:3px solid #fff; outline-offset:-6px; }
      the free plan. It sits in the bottom-right corner and was landing
      straight on top of this button. Raise the dock above it rather
      than fight it. */
-  position:fixed; right:var(--gut); bottom:4.4rem; z-index:62;
+  position:fixed; right:var(--gut);
+  bottom:calc(4.4rem + env(safe-area-inset-bottom, 0px)); z-index:62;
  display:flex; flex-direction:column; align-items:flex-end; gap:.6rem;
  font-family:var(--bubbly);
  pointer-events:none;
@@ -1136,9 +1144,19 @@ button.proj[aria-pressed="true"]{ outline:3px solid #fff; outline-offset:-6px; }
 /* the card itself is the tap shield: pressing it must never dismiss */
 .intro__card{ position:relative; }
 @media (max-width:520px){
- .pipo__badge{ display:none; }
- .pipo__bubble{ width:calc(100vw - 2.4rem); }
- .odometer{ display:none; }
+  .pipo__badge{ display:none; }
+  .pipo__bubble{ width:calc(100vw - 2.4rem); }
+  /* The bubble grows upward from the dock. With no cap, one long reply
+     wrapped to a dozen lines and pushed the whole thing off the top of
+     a phone screen - behind the sticky header, effectively unreachable.
+     Cap it and let it scroll inside instead. svh tracks the real
+     viewport, so it survives a collapsing mobile browser bar. */
+  .pipo__bubble{
+    max-height:min(52svh, 21rem);
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+  }
 }
 
 /* •••••••••••••••••••••••••• CHAOS MODE •••••••••••••••••••••••••• */
