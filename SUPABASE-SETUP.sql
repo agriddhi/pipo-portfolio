@@ -71,6 +71,21 @@ drop policy if exists "anyone can post garden"  on public.garden;
 create policy "anyone can read garden" on public.garden for select using (true);
 create policy "anyone can post garden" on public.garden for insert with check (true);
 
+-- ── 5 · THE VISIT COUNTER ──────────────────────────────────────
+-- One row per visit. The odometer never reads these rows — it asks
+-- PostgREST for an exact count in the Content-Range header instead,
+-- so this table can grow forever without costing anything.
+create table if not exists public.visits (
+  id          bigint generated always as identity primary key,
+  referrer    text,
+  created_at  timestamptz default now()
+);
+alter table public.visits enable row level security;
+drop policy if exists "anyone can read visits"  on public.visits;
+drop policy if exists "anyone can post visits"  on public.visits;
+create policy "anyone can read visits" on public.visits for select using (true);
+create policy "anyone can post visits" on public.visits for insert with check (true);
+
 
 -- ══════════════════════════════════════════════════════════════
 --  YOU'RE DONE.

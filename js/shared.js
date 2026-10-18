@@ -96,6 +96,12 @@ function ntfyTransport(topic) {
 function restTransport(cfg) {
   const GET = cfg.url;
   const POST = cfg.post || cfg.url;
+  /* app key → db column. PostgREST rejects a column that is not in
+     the table's schema (HTTP 400 / PGRST204), so each feed declares
+     exactly what it writes — see COLS below. */
+  const APPKEY = { from_name: "from", colour: "c", payload: "strokes" };
+  const keyOf = (col) => (cfg.app || APPKEY)[col] ?? col;
+
   const map = typeof cfg.map === "function"
     ? cfg.map
     : (r) => ({
@@ -105,6 +111,10 @@ function restTransport(cfg) {
         c: r.colour ?? "#f4a6c0",
         score: r.score ?? 0,
         payload: r.payload ?? null,
+        /* the Bloom Yard stores its drawing in `payload` but reads it
+           back as `strokes`, which is the key ntfy uses. Provide both
+           so a flower renders identically whichever backend served it. */
+        strokes: r.payload ?? null,
         at: Date.parse(r.created_at) || Date.now(),
       });
 
@@ -124,20 +134,36 @@ function restTransport(cfg) {
       if (!res.ok) throw new Error("HTTP " + res.status);
       const data = await res.json();
       const list = Array.isArray(data) ? data : (data.items || data.records || []);
-      if (!Array.isArray(list) || !list.length) throw new Error("empty");
+      if (!Array.isArray(list)) throw new Error("bad shape");
+      /* An empty wall is a WORKING wall, not a failure. This used to
+         throw on `!list.length`, which meant a fresh Supabase table
+         fell through to ntfy — and once ntfy became `state.backend`
+         every write preferred it, so Supabase could never receive a
+         row and could never stop being empty. Three of the four walls
+         were deadlocked there permanently. */
       return list.map(map);
     },
     async push(entry) {
+      /* send ONLY the columns this table has. Previously every wall
+         sent every field (text, from_name, colour, score, payload)
+         to every table, so all four inserts 400'd on the first
+         unknown column and fell back to ntfy. */
+      const body = cfg.cols
+        ? Object.fromEntries(cfg.cols.map((col) => {
+            const v = entry[keyOf(col)];
+            return [col, v === undefined ? (col === "text" ? "" : null) : v];
+          }))
+        : {
+            text: entry.text ?? "",
+            from_name: entry.from ?? "a visitor",
+            colour: entry.c ?? "#f4a6c0",
+            score: entry.score ?? 0,
+            payload: entry.payload ?? null,
+          };
       const res = await fetch(POST, {
         method: "POST",
         headers: headers(),
-        body: JSON.stringify({
-          text: entry.text ?? "",
-          from_name: entry.from ?? "a visitor",
-          colour: entry.c ?? "#f4a6c0",
-          score: entry.score ?? 0,
-          payload: entry.payload ?? null,
-        }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error("HTTP " + res.status);
     },
@@ -179,24 +205,43 @@ export function createFeed({ endpoint, localKey, limit = 40, colourByIndex = tru
   async function load() {
     state.items = index(readLocal(localKey));
 
+    /* Read from EVERY transport that answers, then union the result.
+
+       This used to stop at the first transport that returned rows.
+       That had two problems: a wall whose Supabase table was still
+       empty silently skipped Supabase forever, and it meant one
+       backend's content could hide the other's. Now a transport that
+       answers at all counts as ALIVE, empty or not — alive is what
+       decides the write target — and we keep reading the rest for
+       their content until Supabase has caught up. */
+    const alive = [];
+    const got = [];
     for (const net of nets) {
       try {
         const remote = await net.pull();
-        // merge: local wins on id collision (it is the same entry)
-        const merged = [...remote.filter((e) => e.id && !byId.has(e.id)), ...state.items];
-        state.items = index(merged.slice(0, limit));
-        state.shared = true;
-        state.backend = net.label;
-        writeLocal(localKey, state.items);
-        state.loaded = true;
-        emit();
-        return state.items;
+        if (Array.isArray(remote)) { alive.push(net); got.push(...remote); }
       } catch {
-        // this one is down or misconfigured — fall through to the next
+        // down, blocked, rate-limited or misconfigured — the others still run
       }
     }
 
-    state.shared = false;   // offline, blocked, or nothing configured
+    /* de-duplicate across sources and against what we already have.
+       Local wins on an id collision: it is the same entry, and it is
+       the one carrying `mine`, which the copy depends on. Fresh
+       remote rows go first because they arrive newest-first. */
+    const seen = new Set(state.items.map((e) => e && e.id).filter(Boolean));
+    const fresh = [];
+    for (const e of got) {
+      if (!e || !e.id || seen.has(e.id)) continue;
+      seen.add(e.id);
+      fresh.push(e);
+    }
+    state.items = index([...fresh, ...state.items].slice(0, limit));
+
+    state.shared = alive.length > 0;
+    /* first survivor wins — that is the one we write back to */
+    state.backend = alive.length ? alive[0].label : null;
+    if (alive.length) writeLocal(localKey, state.items);
     state.loaded = true;
     emit();
     return state.items;
@@ -271,11 +316,31 @@ const BASE = `https://ntfy.sh/haxbaby-babyfirstwebsite-pipo-${slug(STORAGE_NS)}`
 /* the safety net only. Returns nothing once it is switched off. */
 const spare = NTFY_FALLBACK ? (t) => [{ ntfy: `${BASE}-${t}` }] : () => [];
 
+/* Exactly which columns each table has. PostgREST answers 400
+   (PGRST204 — "Could not find the 'x' column") for any column not in
+   the schema, so this cannot be guessed or unioned across walls. */
+const WALL_COLS = {
+  stars:  ["text", "from_name", "colour"],
+  wishes: ["text", "from_name"],
+  scores: ["from_name", "score"],
+  garden: ["from_name", "colour", "payload"],
+};
+
+const SUPA_HOST = "https://xgrtqdqdtyytpopaadcw.supabase.co";
+const SUPA_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhncnRxZHFkdHl5dHBvcGFhZGN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzMzEzNzYsImV4cCI6MjEwNzkwNzM3Nn0.KKZDIApF78jpAoLqDaa_ry-sViSHDDDrWQd8lZJvnkE";
+
+const supaHeaders = () => ({
+  apikey: SUPA_KEY,
+  Authorization: "Bearer " + SUPA_KEY,
+  "Content-Type": "application/json",
+});
+
 const supa = (table, select) => ({
   label: "supabase",
-  url:  `https://YOUR-PROJECT.supabase.co/rest/v1/${table}?select=${select}&order=created_at.desc&limit=40`,
-  post: `https://YOUR-PROJECT.supabase.co/rest/v1/${table}`,
-  key:  "YOUR-ANON-KEY",
+  url:  `${SUPA_HOST}/rest/v1/${table}?select=${select}&order=created_at.desc&limit=40`,
+  post: `${SUPA_HOST}/rest/v1/${table}`,
+  key:  SUPA_KEY,
+  cols: WALL_COLS[table],
 });
 
 /* ── the pinned stars ── */
@@ -324,3 +389,47 @@ export const gardenFeed = () =>
     localKey: `${STORAGE_NS}.garden`,
     limit: 60,
   });
+
+/* ══════════════════════════════════════════════════════════════
+   HOW MANY PEOPLE HAVE ACTUALLY BEEN HERE
+   ══════════════════════════════════════════════════════════════
+
+   This was a hardcoded 1204 with a localStorage bump on top. It
+   looked like a counter and was not one. Now it is real, and it comes
+   from the same Supabase project as the four walls.
+
+   The trick that keeps it cheap: PostgREST will report an exact count
+   in the Content-Range header if you ask for it, so the query returns
+   one empty row no matter how large the table grows. It never
+   downloads the visits themselves.
+
+   A visit is recorded at most once per browser session, so hammering
+   refresh cannot inflate the number.
+
+   Resolves to null when Supabase is unreachable — the caller falls
+   back to a local tally, so the odometer is never blank or zero. */
+export async function visitTally() {
+  try {
+    const SEEN = `${STORAGE_NS}.counted`;
+    if (!sessionStorage.getItem(SEEN)) {
+      sessionStorage.setItem(SEEN, "1");
+      try {
+        await fetch(`${SUPA_HOST}/rest/v1/visits`, {
+          method: "POST",
+          headers: supaHeaders(),
+          body: JSON.stringify({ referrer: (document.referrer || "").slice(0, 200) }),
+        });
+      } catch { /* counting is best-effort; the read below still works */ }
+    }
+
+    const res = await fetch(`${SUPA_HOST}/rest/v1/visits?select=id`, {
+      headers: { ...supaHeaders(), Prefer: "count=exact", Range: "0-0" },
+    });
+    if (!res.ok) return null;
+    /* Content-Range arrives as "0-0/1234" */
+    const total = parseInt((res.headers.get("Content-Range") || "").split("/")[1], 10);
+    return Number.isFinite(total) ? total : null;
+  } catch {
+    return null;
+  }
+}

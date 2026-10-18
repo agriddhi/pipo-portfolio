@@ -989,7 +989,12 @@ button.proj[aria-pressed="true"]{ outline:3px solid #fff; outline-offset:-6px; }
    The wrapper is now transparent to clicks. Only the button, and the
    bubble while it is genuinely open, take input. */
 .pipo{
- position:fixed; right:var(--gut); bottom:1rem; z-index:62;
+ /* Lifted clear of Netlify's "Powered by Netlify" badge, which is
+     injected into every deployed page and cannot be configured off on
+     the free plan. It sits in the bottom-right corner and was landing
+     straight on top of this button. Raise the dock above it rather
+     than fight it. */
+  position:fixed; right:var(--gut); bottom:4.4rem; z-index:62;
  display:flex; flex-direction:column; align-items:flex-end; gap:.6rem;
  font-family:var(--bubbly);
  pointer-events:none;

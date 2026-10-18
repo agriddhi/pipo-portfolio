@@ -248,7 +248,9 @@ export function initGate({ onEnter }) {
     if (line) line.textContent = LINES[Math.min(LINES.length - 1, Math.floor(shown * LINES.length))];
     if (shown >= 0.995) {
       clearInterval(spin);
-      setPct("100%");
+      /* setPct appends the "%" itself — passing "100%" here rendered
+         "100%%" on the last frame of every single load. */
+      setPct("100");
       if (line) line.textContent = "she is awake. good timing.";
     }
   }, 60);

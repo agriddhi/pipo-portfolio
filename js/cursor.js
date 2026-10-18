@@ -1,4 +1,5 @@
 import { STORAGE_NS } from "./config.js";
+import { visitTally } from "./shared.js";
 ﻿/* ══════════════════════════════════════════════════════════════
    PIPO — cursor.js
    Side Quests:
@@ -176,47 +177,55 @@ export function initOdometer() {
   if (!el || !root) return;
 
   const KEY = `${STORAGE_NS}.dreamsDelivered`;
-  let value = 1204;
+  let value = 0;
 
+  /* Seed from what this browser last saw, so the drum is never blank
+     while the real count is on its way. The old code seeded 1204 —
+     a hardcoded fiction, which is worse than showing nothing. */
   try {
-    const extra = parseInt(localStorage.getItem(KEY) || "0", 10);
-    const n = isNaN(extra) ? 0 : extra;
-    value = 1204 + n;
-    localStorage.setItem(KEY, String(n));
-  } catch {}
+    const n = parseInt(localStorage.getItem(KEY) || "0", 10);
+    value = isNaN(n) || n < 0 ? 0 : n;
+  } catch { value = 0; }
 
   const fmt = (n) => n.toLocaleString("en-US");
 
-  /* one wheel per digit, commas preserved in place */
-  el.innerHTML = "";
-  const wheels = [];
-  for (const c of fmt(value)) {
-    if (c === ",") {
-      const s = document.createElement("i");
-      s.className = "odometer__comma";
-      s.textContent = ",";
-      el.appendChild(s);
-      continue;
+  /* one wheel per digit, commas preserved in place.
+     build() is a function, not a straight loop, because the real
+     count can land after the drum is drawn and may need a different
+     number of digits. */
+  let wheels = [];
+  function build() {
+    el.innerHTML = "";
+    wheels = [];
+    for (const c of fmt(value)) {
+      if (c === ",") {
+        const s = document.createElement("i");
+        s.className = "odometer__comma";
+        s.textContent = ",";
+        el.appendChild(s);
+        continue;
+      }
+      const w = document.createElement("b");
+      w.className = "odometer__wheel";
+      const strip = document.createElement("span");
+      strip.className = "odometer__strip";
+      // 27 entries so a wheel can run past 9 before landing
+      for (let n = 0; n < 26; n++) {
+        const i = document.createElement("i");
+        i.textContent = String(n % 10);
+        strip.appendChild(i);
+      }
+      const last = document.createElement("i");
+      last.textContent = c;
+      strip.appendChild(last);
+      w.appendChild(strip);
+      el.appendChild(w);
+      wheels.push({ strip, target: +c });
     }
-    const w = document.createElement("b");
-    w.className = "odometer__wheel";
-    const strip = document.createElement("span");
-    strip.className = "odometer__strip";
-    // 27 entries so a wheel can run past 9 before landing
-    for (let n = 0; n < 26; n++) {
-      const i = document.createElement("i");
-      i.textContent = String(n % 10);
-      strip.appendChild(i);
-    }
-    const last = document.createElement("i");
-    last.textContent = c;
-    strip.appendChild(last);
-    w.appendChild(strip);
-    el.appendChild(w);
-    wheels.push({ strip, target: +c });
   }
+  build();
 
-  const paint = () => { if (sr) sr.textContent = "dreams delivered: " + fmt(value); };
+  const paint = () => { if (sr) sr.textContent = "visitors so far: " + fmt(value); };
 
   const settle = (i, delay) => setTimeout(() => {
     const w = wheels[i];
@@ -232,6 +241,40 @@ export function initOdometer() {
     setTimeout(() => root.classList.remove("is-rolling"), 2400);
   }
 
+  /* The real number, from Supabase, once it answers.
+     If it is bigger than what we drew, spin up to it. If the digit
+     count changed (9 -> 10, 99 -> 100) the drum is rebuilt instead,
+     because a wheel cannot grow. */
+  visitTally().then((n) => {
+    if (n == null || n <= value) return;
+    const grew = fmt(n).length !== fmt(value).length;
+    value = n;
+    try { localStorage.setItem(KEY, String(n)); } catch {}
+
+    if (grew) {
+      build();
+      wheels.forEach((_, i) => settle(i, 120 + i * 190));
+    } else {
+      let wi = 0;
+      for (const c of fmt(value)) {
+        if (c === ",") continue;
+        const w = wheels[wi++];
+        if (!w) continue;
+        const d = +c;
+        if (d === w.target) continue;
+        w.target = d;
+        // a full turn first, so it reads mechanical rather than a glitch
+        w.strip.style.transition = "none";
+        w.strip.style.transform = `translateY(${-(d + 10) * 1.35}em)`;
+        requestAnimationFrame(() => {
+          w.strip.style.transition = "transform .75s cubic-bezier(.2,1.6,.4,1)";
+          w.strip.style.transform = `translateY(${-d * 1.35}em)`;
+        });
+      }
+    }
+    paint();
+  }).catch(() => { /* offline: the local tally stands */ });
+
   if ("IntersectionObserver" in window) {
     const io = new IntersectionObserver((es) => {
       es.forEach((e) => { if (e.isIntersecting) { start(); io.disconnect(); } });
@@ -240,12 +283,12 @@ export function initOdometer() {
   } else start();
 
   return {
-    /** spin only the wheels that actually changed */
+    /** spin only the wheels that actually changed.
+        Purely visual now: it used to persist to KEY, which meant the
+        drum counted star-pins and game plays rather than visitors, and
+        drifted upward forever. The stored number is now the real visit
+        count and only visitTally() may write it. */
     bump(n = 1) {
-      try {
-        const cur = parseInt(localStorage.getItem(KEY) || "0", 10) || 0;
-        localStorage.setItem(KEY, String(cur + n));
-      } catch {}
       value += n;
       paint();
 
