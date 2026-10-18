@@ -1,0 +1,30 @@
+# Cache and security headers.
+#
+# Honoured by Netlify and Cloudflare Pages without any build step —
+# drop the folder in and this just works.
+#
+# The rule that matters: HTML must never be cached, or a judge who
+# visits twice sees the old broken build and you get blamed for it.
+# Everything else is content-addressed by nothing, so give it a
+# short window rather than "forever".
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+
+/index.html
+  Cache-Control: no-cache, must-revalidate
+
+/assets/*
+  Cache-Control: public, max-age=86400
+
+/vendor/*
+  Cache-Control: public, max-age=604800
+
+/css/*
+  Cache-Control: public, max-age=3600
+
+/js/*
+  Cache-Control: public, max-age=3600

@@ -1,0 +1,301 @@
+/* ══════════════════════════════════════════════════════════════
+   PIPO — css/chaos.css
+
+   Chaos mode has its own page now. It used to be an overlay on the
+   real site, which meant every time somebody toggled it the actual
+   website got worse. It lives here instead, where it can misbehave
+   without costing anyone a working page.
+
+   The chrome is deliberately 1997: beveled edges, system fonts,
+   tiled everything. The game itself is the one modern thing on it,
+   because the game is the point.
+   ══════════════════════════════════════════════════════════════ */
+
+body.chaospage{
+  margin:0;
+  min-height:100dvh;
+  background:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 2px),
+    linear-gradient(160deg, #3b3160 0%, #241c40 55%, #4a2f56 100%);
+  color:#e9e2f7;
+  font-family:var(--mono);
+  overflow-x:hidden;
+}
+
+/* ── the header bar: a way back, always ─────────────────────── */
+.chaos-head{
+  position:fixed; inset:0 0 auto 0; z-index:70;
+  display:flex; align-items:center; justify-content:space-between; gap:1rem;
+  padding:.5rem .9rem;
+  background:linear-gradient(#3f3663,#241d3e);
+  border-bottom:2px outset #6b5f95;
+  font-size:.72rem;
+}
+.chaos-head__back{
+  color:#ffe9b8; text-decoration:none; font-weight:700; letter-spacing:.06em;
+  padding:.3rem .6rem; border:2px outset #8a7bb5; background:#4a3f70;
+  min-height:36px; display:inline-flex; align-items:center; gap:.4rem;
+}
+.chaos-head__back:hover{ background:#6a5a9c; color:#fff; }
+.chaos-head__back:active{ border-style:inset; }
+.chaos-head__title{ font-weight:700; letter-spacing:.24em; color:#ffd9e4; }
+.chaos-head__esc{
+  padding:.25rem .55rem; border:2px inset #4a3f70; background:#2c2450;
+  color:#b9a9d8; letter-spacing:.14em;
+}
+
+/* ── the HUD ─────────────────────────────────────────────────── */
+.chaos-main{ padding:3.6rem 0 3rem; }
+
+.chaos-hud{
+  display:flex; align-items:flex-end; gap:1.2rem; flex-wrap:wrap;
+  max-width:64rem; margin:0 auto .8rem; padding:0 1rem;
+}
+.chaos-hud__label{
+  display:block; font-size:.56rem; letter-spacing:.22em; text-transform:uppercase;
+  color:#a99ac9; font-weight:400;
+}
+.chaos-hud__value{ font-size:1.7rem; line-height:1; color:#ffe9b8; font-variant-numeric:tabular-nums; }
+.chaos-hud__value.is-pop{ animation:scorePop .35s var(--ease); }
+@keyframes scorePop{ 0%{ transform:scale(1) } 40%{ transform:scale(1.45); color:#fff } 100%{ transform:scale(1) } }
+.chaos-hud__block--right{ margin-left:auto; text-align:right; }
+
+/* the mood meter — the only thing you really need to watch */
+.chaos-meter{ flex:1 1 14rem; min-width:11rem; }
+.chaos-meter__head{ display:flex; align-items:baseline; justify-content:space-between; gap:.6rem; margin-bottom:.25rem; }
+.chaos-meter__word{ font-size:.66rem; letter-spacing:.1em; color:#9fe0b8; }
+.chaos-meter__word.is-mid{ color:#ffd98a; }
+.chaos-meter__word.is-high{ color:#ff8fa3; animation:alarm .5s steps(2) infinite; }
+@keyframes alarm{ 50%{ opacity:.35 } }
+
+.chaos-meter__track{
+  height:1.1rem; background:#1b1430; border:2px inset #4a3f70; overflow:hidden;
+}
+.chaos-meter__track i{
+  display:block; height:100%; width:26%;
+  background:linear-gradient(90deg,#63c98d 0%,#ffd166 55%,#ff5f7e 100%);
+  background-size:calc(10000% / max(var(--agitation,0.26),0.01)) 100%;
+  transition:width .12s linear;
+}
+/* the room itself gets more agitated, not just the bar */
+body.chaospage{ filter:none; }
+
+/* ── the arena ───────────────────────────────────────────────── */
+.chaos-arena{
+  position:relative;
+  height:clamp(20rem,58vh,34rem);
+  max-width:64rem; margin:0 auto;
+  border:3px outset #8a7bb5;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255,214,235,.18), transparent 55%),
+    radial-gradient(circle at 78% 76%, rgba(180,150,255,.2), transparent 55%),
+    linear-gradient(#1d1736, #120e26);
+  overflow:hidden;
+  touch-action:none;
+}
+.chaos-arena.is-sneeze{ animation:sneezeShake .28s linear 6; }
+@keyframes sneezeShake{
+  0%,100%{ transform:translate(0,0) }
+  25%{ transform:translate(-7px,4px) }
+  75%{ transform:translate(6px,-5px) }
+}
+
+#chaos-gl{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+
+.chaos-sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+
+/* ── the food tray ───────────────────────────────────────────── */
+.chaos-tray{
+  position:absolute; left:0; right:0; bottom:0; z-index:6;
+  display:flex; align-items:center; justify-content:center; gap:.8rem; flex-wrap:wrap;
+  padding:.6rem .8rem;
+  background:linear-gradient(transparent, rgba(18,14,38,.92) 40%);
+}
+.chaos-tray__food{ display:flex; gap:.4rem; }
+.chaos-food{
+  display:grid; place-items:center; gap:.1rem;
+  width:3.2rem; height:3.2rem;
+  font-size:1.5rem; cursor:pointer;
+  background:#e8e2f2; border:3px outset #fff; color:#241c40;
+  min-width:48px; min-height:48px;
+}
+.chaos-food i{ font-style:normal; font-size:.46rem; letter-spacing:.06em; text-transform:uppercase; color:#5b4d80; }
+.chaos-food:hover{ background:#fff; }
+.chaos-food.is-on{ border-style:inset; background:#ffd9e4; box-shadow:0 0 0 2px #ff8fa3; }
+.chaos-throw{
+  min-height:48px; padding:.6rem 1.2rem;
+  font-family:var(--mono); font-size:.8rem; font-weight:700; letter-spacing:.1em;
+  color:#241c40; background:#9fe0b8; border:3px outset #d6ffe8; cursor:pointer;
+}
+.chaos-throw i{ font-style:normal; display:block; font-size:.5rem; opacity:.65; letter-spacing:.16em; }
+.chaos-throw:hover{ background:#c9ffe0; }
+.chaos-throw:active{ border-style:inset; }
+
+/* ── food in the air ─────────────────────────────────────────── */
+.chaos-fly{
+  position:absolute; left:0; top:0; z-index:5;
+  font-size:1.6rem; pointer-events:none;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.6));
+}
+
+/* the little burst when she catches something */
+.chaos-spark{
+  position:absolute; z-index:11; pointer-events:none;
+  font-size:.95rem;
+  animation:sparkFly .9s cubic-bezier(.22,.9,.3,1) forwards;
+}
+@keyframes sparkFly{
+  0%{ transform:translate(-50%,-50%) scale(.5); opacity:1 }
+  100%{ transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.3); opacity:0 }
+}
+
+/* THE PETAL STORM.
+
+   These sat at z-index 4, behind the game-over overlay at z-index 9
+   with a 78% dark background — so the entire sneeze was generated and
+   then hidden under a sheet. Now they are above everything and they
+   FALL, which is what a sneeze actually does. */
+.chaos-storm{
+  position:absolute; z-index:12; pointer-events:none;
+  font-size:1.15rem; line-height:1;
+  animation:stormFall var(--fall,2.4s) cubic-bezier(.4,.1,.6,1) forwards;
+}
+@keyframes stormFall{
+  0%{ transform:translate(-50%,-50%) rotate(0); opacity:0 }
+  8%{ opacity:1 }
+  100%{
+    transform:translate(calc(-50% + var(--dx)), 105vh) rotate(var(--spin,360deg));
+    opacity:0;
+  }
+}
+
+/* ── game over ───────────────────────────────────────────────── */
+.chaos-over{
+  position:absolute; inset:0; z-index:9;
+  display:grid; place-items:center; padding:1rem;
+  background:rgba(12,9,26,.78);
+}
+.chaos-over[hidden]{ display:none; }
+.chaos-over__win{
+  width:min(100%,24rem); padding:1.3rem 1.4rem;
+  background:#c0c0c0; color:#000; text-align:center;
+  border:3px outset #fff; box-shadow:4px 4px 0 rgba(0,0,0,.6);
+}
+.chaos-over__title{
+  margin:0 0 .6rem; font-size:1.5rem; font-weight:700; letter-spacing:.14em;
+  color:#a3001a; animation:alarm .5s steps(2) infinite 4;
+}
+.chaos-over__msg{ margin:0 0 1rem; font-size:.78rem; line-height:1.6; }
+.chaos-over__msg b{ color:#a3001a; }
+.chaos-over__again{
+  min-height:44px; padding:.55rem 1.4rem; font-family:var(--mono);
+  font-size:.82rem; font-weight:700; cursor:pointer;
+  background:#c0c0c0; color:#000; border:3px outset #fff;
+}
+.chaos-over__again:active{ border-style:inset; }
+.chaos-over__esc{ margin:.8rem 0 0; font-size:.6rem; opacity:.7; }
+
+/* ── the chatter under the arena ─────────────────────────────── */
+.chaos-hint{
+  max-width:64rem; margin:.7rem auto; padding:0 1rem;
+  min-height:1.4em; text-align:center;
+  font-size:.72rem; color:#ffd9e4;
+}
+.chaos-rules{
+  max-width:44rem; margin:1rem auto 0; padding:.9rem 1.1rem;
+  font-size:.7rem; line-height:1.7; color:#b6a8d4;
+  border:2px dashed #4a3f70;
+}
+.chaos-rules b{ color:#ffe9b8; }
+
+/* the early-web furniture needs to sit above the game, not behind it */
+.chaospage .chaos-extra{ z-index:64; }
+.chaospage .chaos-desktop,
+.chaospage .chaos-taskbar,
+.chaospage .chaos-load{ z-index:63; }
+.chaospage .marquee{ z-index:65; }
+.chaospage .chaos-win{ z-index:66; }
+.chaospage .chaos-icons{ top:5rem; }
+
+/* ══════════════════════════════════════════════════════════════
+   THE ARENA IS THE GAME. NOTHING DECORATIVE MAY SIT INSIDE IT.
+
+   These windows used to be fixed to the corners of the screen, which
+   put "still no cookies", "DO NOT PET THE PIXELS" and PIPO.EXE
+   straight over the mood meter and the food tray.
+
+   They now live in .chaos-strip, an ordinary flex row BELOW the game.
+   Normal flow means overlap is not something you can even express —
+   rather than nudging things left and right until it happens to look
+   right at one particular window width.
+   ══════════════════════════════════════════════════════════════ */
+.chaos-strip{
+  display:flex; flex-wrap:wrap; gap:1rem;
+  align-items:flex-start;
+  max-width:64rem; margin:1.2rem auto 2rem; padding:0 1rem;
+}
+.chaos-strip > *,
+.chaos-strip .chaos-extra > *{ position:static; inset:auto; margin:0; }
+
+.chaos-strip .chaos-extra{
+  display:contents;              /* its children join the same flex row */
+}
+
+/* the taskbar is a taskbar — it belongs to the bottom of the screen,
+   not to the strip. Same for the door, which is supposed to float and
+   dodge you. Both got dragged into the flow by the rule above, which
+   left the taskbar sitting mid-page and the door parked in a corner of
+   the strip instead of anywhere useful. */
+.chaos-strip .chaos-taskbar{
+  position:fixed; left:0; right:0; bottom:0; z-index:67;
+}
+.chaos-strip .chaos-door{
+  /* parked in the bottom-right of the screen, over the marquee and the
+     top of the taskbar — both decorative. Anywhere higher and it sat
+     on top of the food tray. It still runs away when you click it. */
+  position:fixed; right:.6rem; bottom:.6rem; z-index:68;
+}
+.chaos-strip .chaos-room{ position:fixed; inset:0; z-index:69; }
+
+/* the webring carried a negative offset from its overlay days */
+.chaos-strip .chaos-webring{ margin:0; transform:none; }
+
+/* pure clutter once there is a game to play — the marquees, the taskbar
+   and the windows already carry the whole early-web idea */
+.chaospage .chaos-desktop,
+.chaospage .chaos-icons,
+.chaospage .chaos-rotator,
+.chaospage .chaos-gifs,
+.chaospage .chaos-hearts,
+.chaospage .chaos-badge,
+.chaospage .chaos-load{ display:none; }
+
+/* the marquees sit BELOW the header and ABOVE the taskbar, so they
+   cross neither the HUD nor the controls */
+.chaospage .marquee--top{ top:3.45rem; }
+.chaospage .marquee--bottom{ bottom:2.1rem; }
+.chaospage .chaos-main{ padding-top:6.6rem; }
+
+/* the two windows now sit side by side with room to breathe */
+.chaos-strip .chaos-counter,
+.chaos-strip .chaos-win{ flex:0 0 auto; width:13rem; min-width:11rem; }
+.chaos-strip .chaos-nowplaying{ flex:1 1 16rem; }
+.chaos-strip .chaos-marquee2,
+.chaos-strip .chaos-webring{ flex:1 1 100%; }
+.chaos-strip .chaos-marquee2{ border:2px outset #8a7bb5; background:#2c2450; }
+
+/* ── phones: the furniture gets out of the way ───────────────── */
+@media (max-width:700px){
+  .chaos-head{ font-size:.64rem; padding:.45rem .6rem; }
+  .chaos-head__title{ letter-spacing:.14em; }
+  .chaos-hud{ gap:.7rem; }
+  .chaos-hud__value{ font-size:1.3rem; }
+  .chaos-arena{ height:clamp(17rem,52vh,26rem); }
+  .chaos-food{ width:2.9rem; height:2.9rem; font-size:1.25rem; }
+  .chaos-throw{ flex:1 1 100%; }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .chaos-over__title, .chaos-meter__word.is-high{ animation:none; }
+  .chaos-arena.is-sneeze{ animation:none; }
+}

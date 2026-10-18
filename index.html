@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en" data-sky="day" data-chaos="off" data-sound="on">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>PIPO — Sakura Dragon, Sky Tech Department</title>
+<meta name="description" content="Pipo is a sakura dragon from the Night Shift of the Sky Tech Department. She builds flower yards, tunes mood radio stations, and cracks fortune cookies. Everything is possible with the power of love and gratitude." />
+<meta name="theme-color" content="#fff8f1" />
+<meta property="og:title" content="PIPO — Sakura Dragon" />
+<meta property="og:description" content="Everything is possible with the power of love and gratitude." />
+<meta property="og:type" content="website" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Fredoka:wght@300..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/base.css" />
+<link rel="stylesheet" href="css/world.css" />
+<link rel="stylesheet" href="css/site.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🌸</text></svg>" />
+</head>
+
+<body>
+
+<a class="skip-link" href="#about">Skip to content</a>
+
+<!-- ══════════════════════ PRELOADER ══════════════════════ -->
+<div class="gate" id="gate">
+  <div class="gate__inner">
+    <p class="gate__eyebrow">haX.baby · baby&rsquo;s first website</p>
+    <p class="gate__pct" id="gate-pct">0%</p>
+    <p class="gate__line" id="gate-line">waking her up…</p>
+    <div class="gate__bar"><i id="gate-bar"></i></div>
+    <div class="gate__btns">
+      <button class="gate__btn" id="gate-sound" type="button">
+        <span aria-hidden="true">♪</span> enter <b>with sound</b>
+      </button>
+      <button class="gate__btn gate__btn--alt" id="gate-quiet" type="button">
+        <span aria-hidden="true">✕</span> enter <b>quietly</b>
+      </button>
+    </div>
+    <p class="gate__note">sound is optional. she will not mind either way.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════ THE WORLD ══════════════════════
+     A fixed scene the whole page scrolls through: morning →
+     noon → dusk → night, with the mountain, the tree, and
+     blossoms that never stop falling. -->
+<div class="world" id="world" aria-hidden="true"></div>
+
+<!-- ══════════════════════ AMBIENT LAYERS ══════════════════════ -->
+<canvas id="petals" aria-hidden="true"></canvas>
+<canvas id="weather" aria-hidden="true"></canvas>
+<canvas id="sparkle" aria-hidden="true"></canvas>
+<div id="nightlight" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
+
+<!-- ══════════════════════ WEBGL ══════════════════════ -->
+<canvas id="gl" aria-hidden="true"></canvas>
+
+<!-- ══════════════════════ HUD ══════════════════════ -->
+<header class="hud" role="toolbar" aria-label="Site controls">
+  <div class="hud__brand">
+    <span class="hud__mark" aria-hidden="true">✿</span>
+    <span class="hud__name">pipo.sky</span>
+  </div>
+
+  <div class="hud__ctrls">
+    <button id="btn-sky" class="hbtn" type="button" aria-live="polite" title="Change the sky">
+      <span class="hbtn__icon" aria-hidden="true">☀</span>
+      <span class="hbtn__label">sky: <b id="sky-state">auto</b></span>
+    </button>
+    <button id="btn-sound" class="hbtn" type="button" aria-pressed="true" title="Sound on or off">
+      <span class="hbtn__icon" aria-hidden="true">♪</span>
+      <span class="hbtn__label">sound: <b id="sound-state">on</b></span>
+    </button>
+    <button id="btn-motion" class="hbtn" type="button" aria-pressed="true" title="Big animations on or off">
+      <span class="hbtn__icon" aria-hidden="true">≈</span>
+      <span class="hbtn__label">motion</span>
+    </button>
+    <!-- chaos is its own page now, not an overlay on the real site -->
+    <a id="btn-chaos" class="hbtn hbtn--nav" href="chaos.html" title="Responsive Chaos Mode — a whole separate page">
+      <span class="hbtn__icon" aria-hidden="true">✹</span>
+      <span class="hbtn__label">chaos</span>
+    </a>
+  </div>
+</header>
+
+<div class="odometer" id="odometer">
+  <span class="odometer__tag">dreams delivered</span>
+  <span class="odometer__drum" id="odo" aria-hidden="true"></span>
+  <span class="visually-hidden" id="odo-sr">dreams delivered: 1,204</span>
+</div>
+
+<main id="main">
+
+<!-- ══════════════════════ 1 · LANDING ══════════════════════ -->
+<section class="hero" id="hero" aria-labelledby="hero-title">
+  <div class="hero__stage" id="hero-stage">
+    <div class="hero__moon" aria-hidden="true"></div>
+
+    <!-- depth layers: cut the dragon apart and each piece flies at its own speed.
+         Only assets/pipo-adult.png is required — the rest light up if you add them. -->
+    <div class="hero__layers" id="hero-layers">
+      <img class="hero__layer hero__layer--glow"  data-depth="0.30" data-y="-6"  src="assets/pipo-glow.png"    alt="" aria-hidden="true" />
+      <img class="hero__layer hero__layer--tail"  data-depth="0.62" data-y="-3"  src="assets/pipo-tail.png"    alt="" aria-hidden="true" />
+      <img class="hero__layer hero__layer--body"  data-depth="1.00" data-y="0"   src="assets/pipo-adult.png"
+           alt="Pipo, an adult sakura dragon, curled gracefully in mid-air with cherry blossoms along her tail." />
+      <img class="hero__layer hero__layer--head"  data-depth="1.55" data-y="4"   src="assets/pipo-head.png"    alt="" aria-hidden="true" />
+    </div>
+
+    <canvas id="rush" aria-hidden="true"></canvas>
+  </div>
+
+  <div class="hero__type" id="hero-type">
+    <p class="hero__eyebrow"><span class="tick">✿</span> track 02 · your own baby · sky tech dept. night shift</p>
+    <h1 class="hero__name" id="hero-title">PIPO</h1>
+    <p class="hero__job">Sakura Dragon · Keeper of Small Lights</p>
+    <p class="hero__tagline">“Everything is possible with the power of love and gratitude.”</p>
+    <div class="hero__cta">
+      <a class="btn btn--solid" href="#about">who is she?</a>
+      <a class="btn btn--ghost" href="#projects">what has she built?</a>
+    </div>
+  </div>
+
+  <div class="hero__ticker" aria-hidden="true"><div class="marquee__track" id="hero-marquee"></div></div>
+
+  <a class="scroll-cue" href="#about" aria-label="Scroll to continue">
+    <span class="scroll-cue__petal" aria-hidden="true">❀</span>
+    <span class="scroll-cue__text">scroll to meet her</span>
+  </a>
+  <p class="hero__hint" id="hero-hint">your cursor has a small friend. try moving it.</p>
+</section>
+
+<!-- ══════════════════════ 2 · CHARACTER SHEET ══════════════════════ -->
+<section class="sheet" id="about" aria-labelledby="about-title">
+  <div class="wrap">
+    <p class="kicker"><span>01</span> character sheet</p>
+    <h2 class="h2" id="about-title">So — what exactly <em>is</em> Pipo?</h2>
+
+    <div class="sheet__gallery reveal">
+      <figure class="sheet__shot">
+        <img id="pipo-child-img" src="assets/pipo-child.png" alt="Pipo as a hatchling: a chubby pastel dragon with huge sparkling blue eyes reaching for a falling cherry blossom." />
+        <figcaption><b>pipo, age one.</b> already believed she was a star. she was correct.</figcaption>
+      </figure>
+
+      <figure class="sheet__shot sheet__shot--live">
+        <canvas id="gl-card" aria-hidden="true"></canvas>
+        <figcaption><b>and here she is in three dimensions.</b> no file, no download — she is built out of maths every time this page loads.</figcaption>
+      </figure>
+    </div>
+
+    <ol class="sheet__grid">
+      <li class="card card--name reveal">
+        <span class="card__num">01</span>
+        <h3 class="card__label">Name</h3>
+        <p class="card__value card__value--big">Pipo</p>
+        <p class="card__note">Two syllables, one breath. She answers to it from very far away.</p>
+      </li>
+
+      <li class="card reveal">
+        <span class="card__num">02</span>
+        <h3 class="card__label">What she is</h3>
+        <p class="card__value"><b>Species: Sakura Dragon.</b> A round, chubby body. Huge sparkly eyes with a whole sky inside them. A long curled tail. Soft pastel scales that shift colour with the time of day — peach at dawn, lavender at dusk, moon-white at midnight. Cream horns like candle flame.</p>
+        <p class="card__note"><b>Personality:</b> curious, fearless, always roaming. Cannot walk past somebody who looks sad.<br />
+        <b>Quirks:</b> she sneezes and the sky erupts in cherry blossom petals. She shapeshifts so she can travel light. And she has a genuinely awful sense of humour — she will ragebait her friends and laugh about it for an hour.</p>
+      </li>
+
+      <li class="card reveal">
+        <span class="card__num">03</span>
+        <h3 class="card__label">What she does</h3>
+        <p class="card__value">Night Shift, <b>Sky Tech Department</b>. Half the job is her <b>star terminal</b> — a private patch of sky where every star carries a line. Some of them are her. Some of them are yours.</p>
+        <p class="card__note">The other half is building things: a flower yard, a mood radio, a machine that cracks fortune cookies. Mission: <b>spread love, joy and positivity.</b> She is not subtle about it.</p>
+      </li>
+
+      <li class="card reveal">
+        <span class="card__num">04</span>
+        <h3 class="card__label">Her story</h3>
+        <p class="card__value">She was made out of the love that was already floating around the universe — nothing was taken, something was <i>recognised</i>. The Dragon of Moons and Stars raised her up on the moon, where she learned that light is a thing you hand to people.</p>
+        <p class="card__note">When she grew up she came all the way down to look, and found a mountain covered in cherry blossom. She stayed. <b>The stars came with her.</b></p>
+      </li>
+
+      <li class="card card--tag reveal">
+        <span class="card__num">05</span>
+        <h3 class="card__label">Tagline</h3>
+        <p class="card__value card__value--big card__value--serif">“Everything is possible with the power of love and gratitude.”</p>
+        <p class="card__note">She says it at least four times a day. She means it every time.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ══════════════════════ 3 · TRANSITION → WORK ══════════════════════ -->
+<section class="workgate" id="workgate" aria-hidden="true">
+  <p class="workgate__line">here's what pipo built</p>
+</section>
+
+<!-- ══════════════════════ 4 · PROJECTS ══════════════════════ -->
+<section class="projects" id="projects" aria-labelledby="projects-title">
+  <div class="wrap">
+    <p class="kicker"><span>02</span> selected work</p>
+    <h2 class="h2" id="projects-title">Five things Pipo <em>built</em>.</h2>
+    <p class="lede">Five projects from the night shift. Every one of them is live — touch it, don't just read it.</p>
+
+    <div class="proj-grid">
+      <a class="proj proj--1 reveal" href="#bloomyard">
+        <span class="proj__idx">P/01</span>
+        <span class="proj__icon" aria-hidden="true">❀</span>
+        <h3 class="proj__title">The Bloom Yard</h3>
+        <p class="proj__desc">A flower shop with no door. Draw a flower, plant it in the yard, and it stays there forever — yours, next to everybody else's.</p>
+        <span class="proj__meta">draw · canvas · persistent</span>
+      </a>
+
+      <a class="proj proj--2 reveal" href="#radio">
+        <span class="proj__idx">P/02</span>
+        <span class="proj__icon" aria-hidden="true">♫</span>
+        <h3 class="proj__title">The Mood Radio</h3>
+        <p class="proj__desc">Tell Pipo how you feel. She tunes you a track from scratch — different scale, different tempo, different drum. Nothing is pre-recorded. Ever.</p>
+        <span class="proj__meta">audio · web audio api</span>
+      </a>
+
+      <a class="proj proj--3 reveal" href="#fortune">
+        <span class="proj__idx">P/03</span>
+        <span class="proj__icon" aria-hidden="true">🥠</span>
+        <h3 class="proj__title">The Fortune Machine</h3>
+        <p class="proj__desc">A cookie you have to crack. Inside: a fortune, a burst of petals, and Pipo's unsolicited opinion about it.</p>
+        <span class="proj__meta">pixel art · one input · maximum delight</span>
+      </a>
+
+      <!-- the weather and the time machine are projects too -->
+      <button class="proj proj--4 reveal" id="btn-weather" type="button" aria-pressed="false">
+        <span class="proj__idx">P/04</span>
+        <span class="proj__icon" aria-hidden="true">✿</span>
+        <h3 class="proj__title">The Weather Engine</h3>
+        <p class="proj__desc">Because her scales shift colour with the weather, it is very much her business. Petals, rain, snow, storm, or nothing at all.</p>
+        <span class="proj__meta">now: <b id="weather-state">petals</b> · tap to change</span>
+      </button>
+
+      <button class="proj proj--5 reveal" id="btn-time" type="button" aria-expanded="false" aria-controls="timemachine">
+        <span class="proj__idx">P/05</span>
+        <span class="proj__icon" aria-hidden="true">◷</span>
+        <h3 class="proj__title">The Time Machine</h3>
+        <p class="proj__desc">Drag the whole day sideways. Sky, sun, stars, blossom density, all of it moves with your thumb. Let go and it eases back to now.</p>
+        <span class="proj__meta">scroll-synced · drag anywhere</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════ 5 · P/01 BLOOM YARD ══════════════════════ -->
+<section class="project" id="bloomyard" aria-labelledby="bloom-title">
+  <div class="wrap">
+    <p class="kicker"><span>03</span> project p/01</p>
+    <h2 class="h2" id="bloom-title">The <em>Bloom Yard</em></h2>
+    <p class="lede">Draw a flower. Plant it. It stays in the yard for everyone who visits after you.</p>
+  </div>
+
+  <div class="wrap">
+    <div class="bloom reveal">
+      <div class="bloom__tools">
+        <div class="bloom__swatches" id="bloom-swatches" role="group" aria-label="Petal colour"></div>
+
+        <div class="bloom__sizes" role="group" aria-label="Brush size">
+          <button class="chip is-on" type="button" data-size="6">small</button>
+          <button class="chip" type="button" data-size="14">medium</button>
+          <button class="chip" type="button" data-size="28">big</button>
+        </div>
+
+        <div class="bloom__acts">
+          <button class="btn btn--solid btn--sm" id="bloom-plant" type="button">plant it ✿</button>
+          <button class="btn btn--ghost btn--sm" id="bloom-clear" type="button">clear my drawing</button>
+        </div>
+      </div>
+
+      <div class="bloom__stagewrap">
+        <canvas id="bloom-canvas" width="1200" height="560" aria-label="Draw your flower here with a mouse, finger or stylus"></canvas>
+        <p class="bloom__empty" id="bloom-empty">draw something lovely. it only takes one stroke.</p>
+      </div>
+    </div>
+
+    <div class="garden">
+      <h3 class="garden__h">the yard <span id="garden-count">0 flowers</span></h3>
+      <p class="garden__note" id="garden-note">connecting…</p>
+      <div class="garden__grid" id="garden-grid"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════ 6 · P/02 MOOD RADIO ══════════════════════ -->
+<section class="project project--dark" id="radio" aria-labelledby="radio-title">
+  <div class="wrap">
+    <p class="kicker"><span>04</span> project p/02</p>
+    <h2 class="h2" id="radio-title">The <em>Mood Radio</em></h2>
+    <p class="lede">No playlist. Pipo writes the track while you listen, from the mood you pick.</p>
+
+    <div class="radio reveal">
+      <div class="radio__dialwrap">
+        <p class="radio__freq" id="radio-freq">88.0 <span>FM</span></p>
+        <div class="radio__meters" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+      </div>
+
+      <div class="radio__moods" id="radio-moods" role="group" aria-label="Pick a mood"></div>
+
+      <div class="radio__ctrls">
+        <button class="btn btn--solid" id="radio-play" type="button" aria-pressed="false"><span aria-hidden="true">▶</span> tune it in</button>
+        <span class="radio__now" id="radio-now" aria-live="polite">no signal. pick a mood.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════ 7 · P/03 FORTUNE MACHINE ══════════════════════ -->
+<section class="project" id="fortune" aria-labelledby="fortune-title">
+  <div class="wrap">
+    <p class="kicker"><span>05</span> project p/03</p>
+    <h2 class="h2" id="fortune-title">The <em>Fortune Machine</em></h2>
+    <p class="lede">Click the cookie. Crack it. There is no undo.</p>
+
+    <div class="fortune reveal">
+      <button class="fortune__machine" id="fortune-btn" type="button" aria-live="polite" aria-label="Crack a fortune cookie">
+        <span class="fortune__marquee" aria-hidden="true"><span>★ FORTUNE COOKIE ★ &nbsp;★ FORTUNE COOKIE ★ &nbsp;★ FORTUNE COOKIE ★ &nbsp;★ FORTUNE COOKIE ★ &nbsp;</span></span>
+        <span class="fortune__screen">
+          <canvas id="fortune-pixel" class="fortune__pixel" aria-hidden="true"></canvas>
+          <span class="fortune__scan" aria-hidden="true"></span>
+        </span>
+        <span class="fortune__deck" aria-hidden="true">
+          <b>press to crack</b>
+          <i>one (1) cookie per press</i>
+        </span>
+      </button>
+
+      <div class="fortune__card" id="fortune-card" hidden>
+        <p class="fortune__kicker" aria-hidden="true">✦ pipo says ✦</p>
+        <p class="fortune__line" id="fortune-line"></p>
+        <p class="fortune__aside" id="fortune-aside"></p>
+        <button class="btn btn--ghost btn--sm" id="fortune-again" type="button">another one</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════ 8 · NIGHT: THE STAR TERMINAL ══════════════════════ -->
+<section class="stargate" id="stargate" aria-labelledby="star-title">
+  <div class="wrap">
+    <p class="kicker"><span>06</span> the star terminal · night shift</p>
+    <h2 class="h2" id="star-title">Her sky has <em>stars</em> in it.</h2>
+    <p class="lede">The Dragon of Moons and Stars left her something. Every star carries a line — some of them are Pipo's, most of them are yours.</p>
+  </div>
+
+  <div class="sky-canvas" id="star-sky" role="group" aria-label="Interactive star field. Use arrow keys to move between stars and press Enter to read one."></div>
+
+  <div class="wrap">
+    <div class="wish-read" id="star-read" aria-live="polite"><p class="wish-read__placeholder">…</p></div>
+  </div>
+
+  <div class="wrap">
+    <form class="wish-form" id="star-form" novalidate>
+      <label class="visually-hidden" for="star-name">Your name</label>
+      <input id="star-name" type="text" maxlength="24" placeholder="your name" autocomplete="name" />
+      <label class="visually-hidden" for="star-text">A line for a star</label>
+      <textarea id="star-text" rows="2" maxlength="120" placeholder="a line someone should read tonight…" required></textarea>
+      <button class="btn btn--solid" type="submit">pin a new star ✦</button>
+      <p class="wish-form__msg" id="star-msg" aria-live="polite"></p>
+    </form>
+    <p class="wish-form__note">Stars you pin stay in your own sky. <button type="button" class="linkish" id="star-clear">clear my sky</button></p>
+  </div>
+</section>
+
+<!-- ══════════════════════ 9 · STORY ══════════════════════ -->
+<section class="story" id="story" aria-labelledby="story-title">
+  <div class="wrap">
+    <p class="kicker"><span>07</span> how she got here</p>
+    <h2 class="h2" id="story-title">The long way <em>down</em>.</h2>
+    <p class="lede">The sky will change as you scroll. It has opinions about your reading speed.</p>
+  </div>
+
+  <div class="story__track" id="story-track">
+
+    <article class="scene scene--cosmic" data-scene="0">
+      <div class="scene__art" aria-hidden="true"><span class="orb"></span><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="scene__card">
+        <p class="scene__time">before &#183; the bit that was already there</p>
+        <h3 class="scene__title">Something was loving the universe before anybody noticed</h3>
+        <div class="scene__body">
+          <p>No moon yet. No dragon. Not one cherry blossom. Just a warmth, sitting quietly in the middle of everything, doing nothing in particular.</p>
+          <p>It wasn&#8217;t clever and it wasn&#8217;t planning anything. It just kept noticing that every single thing it touched was worth keeping. Then it looked around the room and went: <em>oh. her.</em></p>
+        </div>
+      </div>
+    </article>
+
+    <article class="scene scene--moon" data-scene="1">
+      <div class="scene__art" aria-hidden="true"><span class="moonbig"></span><span class="guardian"></span></div>
+      <div class="scene__card">
+        <p class="scene__time">then &#183; the moon</p>
+        <h3 class="scene__title">The Dragon of Moons and Stars</h3>
+        <div class="scene__body">
+          <p>She was raised on the moon by a dragon so old that nobody remembers when the counting started. The job was to hold a light without crushing it, which sounds easy right up until you try it four hundred times in a row.</p>
+          <p>The rule was simple and she never once wrote it down: <em>you do not keep the light. You hand it to somebody, and then you let them carry it.</em></p>
+          <p>She was small for ages. She had <em>opinions</em> about that.</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="scene scene--fall" data-scene="2">
+      <div class="scene__art" aria-hidden="true"><span class="streak"></span><span class="streak"></span><span class="streak"></span><span class="falling"></span></div>
+      <div class="scene__card">
+        <p class="scene__time">after &#183; the long way down</p>
+        <h3 class="scene__title">Nobody sent her. She just let go.</h3>
+        <div class="scene__body">
+          <p>That&#8217;s the part her guardian wasn&#8217;t ready for. No permission, no plan, no note. One morning she simply opened her claws and fell, on purpose, because she wanted to see what the bottom looked like.</p>
+          <p>Falling was only scary for about eleven seconds. Then the air went pink, and she stopped worrying and started committing to it.</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="scene scene--mountain" data-scene="3">
+      <div class="scene__art" aria-hidden="true"><span class="ridge"></span><span class="tree"></span><span class="tree tree--b"></span></div>
+      <div class="scene__card">
+        <p class="scene__time">then &#183; the mountain</p>
+        <h3 class="scene__title">She landed in a tree. That&#8217;s how it started.</h3>
+        <div class="scene__body">
+          <p>It was old and pink and completely unbothered by a small dragon arriving out of the sky at roughly the speed of a dropped piano.</p>
+          <p>She stayed one night. Then a week. Then she moved into the branches and has defended that decision every single day since, usually at volume.</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="scene scene--stars" data-scene="4">
+      <div class="scene__art" aria-hidden="true"><span class="skyline"></span><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></div>
+      <div class="scene__card">
+        <p class="scene__time">now &#183; every night since</p>
+        <h3 class="scene__title">The stars came with her and never left</h3>
+        <div class="scene__body">
+          <p>They turned up the same night she did &#8212; a handful, stuck to her back like they&#8217;d travelled a very long way to find somebody specific.</p>
+          <p>She never asked. She just started handing them out. One line each, to whoever looks up. It&#8217;s not a big job. It&#8217;s definitely not a small one either.</p>
+        </div>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- ══════════════════════ 10 · STORYBOOK ══════════════════════ -->
+<section class="project project--book" id="storybook" aria-labelledby="book-title">
+  <div class="wrap">
+    <p class="kicker"><span>08</span> tier 2 · interactive storybook</p>
+    <h2 class="h2" id="book-title">Pipo's <em>Childhood</em></h2>
+    <p class="lede">Four true things, more or less. Drag, swipe, or use the arrow keys.</p>
+
+    <div class="book reveal" id="book">
+      <div class="book__stage" id="book-stage">
+
+        <article class="page page--1 is-open" data-page="0">
+          <div class="page__art page__art--1" aria-hidden="true"><span class="p-orb"></span><span class="p-halo"></span></div>
+          <h3 class="page__h">i. the petal that would not land</h3>
+          <p class="page__p">Every spring the tree let go of one extra petal, and every spring that petal refused to fall. This one hung in the air above the ninth roof for three whole days, turning slowly, humming a note only dogs could hear.</p>
+          <p class="page__p">On the fourth day it cracked. Something small fell out, looked around, and said &#8220;well, this is mine then.&#8221;</p>
+        </article>
+
+        <article class="page page--2" data-page="1">
+          <div class="page__art page__art--2" aria-hidden="true"><span class="p-moon"></span><span class="p-guardian"></span></div>
+          <h3 class="page__h">ii. the worst student on the moon</h3>
+          <p class="page__p">They taught her to hold a light without crushing it. She crushed every single one. Moon-moths, candle-flames, one beetle. All of it, in one afternoon, with great confidence.</p>
+          <p class="page__p">She got it eventually, on a Tuesday. Then she cried about it for six hours, which the guardian counted as the actual lesson.</p>
+        </article>
+
+        <article class="page page--3" data-page="2">
+          <div class="page__art page__art--3" aria-hidden="true"><span class="p-fall"></span><span class="p-pink"></span></div>
+          <h3 class="page__h">iii. the fall, and the bucket</h3>
+          <p class="page__p">She left the moon to look, purely to look. She landed in a bucket. The bucket tipped. She landed in a hedge, which was a considerable improvement and which she has defended in every argument since.</p>
+          <p class="page__p">That is the whole secret of flying: not trying, and refusing to stay down.</p>
+        </article>
+
+        <article class="page page--4" data-page="3">
+          <div class="page__art page__art--4" aria-hidden="true"><span class="p-mountain"></span><span class="p-tree"></span><i class="p-star"></i><i class="p-star"></i><i class="p-star"></i></div>
+          <h3 class="page__h">iv. the tree, and the crooked chimney</h3>
+          <p class="page__p">She landed in a cherry tree and stayed eleven minutes. Then a week. Then she moved into the branches, permanently, and nobody was ever going to be talked out of it.</p>
+          <p class="page__p">Her very first delivery went to the crooked chimney, because it was the only warm one on the mountain. She has been late since. She has never missed.</p>
+        </article>
+
+      </div>
+
+      <div class="book__ctrls">
+        <button class="btn btn--ghost btn--sm" id="book-prev" type="button">‹ back</button>
+        <p class="book__count" id="book-count" aria-live="polite">page 1 of 4</p>
+        <button class="btn btn--solid btn--sm" id="book-next" type="button">turn ›</button>
+      </div>
+      <p class="book__hint">drag the page · ← → keys</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════ 11 · MINI GAME ══════════════════════ -->
+<section class="project project--game" id="game" aria-labelledby="game-title">
+  <div class="wrap">
+    <p class="kicker"><span>09</span> tier 2 · mini-game</p>
+    <h2 class="h2" id="game-title">Pipo's <em>Sneeze Dash</em></h2>
+    <p class="lede">She sneezes, the sky erupts, and now you have to clean it up. Catch the petals before they hit the mountain.</p>
+
+    <div class="game reveal">
+      <div class="game__hud">
+        <p class="game__score">petals caught <b id="game-score">0</b></p>
+        <p class="game__best">best <b id="game-best">0</b></p>
+        <p class="game__timer">time <b id="game-time">30</b></p>
+      </div>
+
+      <div class="game__stagewrap">
+        <canvas id="game-canvas" width="960" height="520" aria-label="Mini game. Move Pipo with the arrow keys, WASD, or by dragging."></canvas>
+        <button class="game__startbtn" id="game-start" type="button">start the sneeze ▶</button>
+      </div>
+
+      <p class="game__msg" id="game-msg" aria-live="polite">arrow keys · wasd · or just drag with your finger</p>
+    </div>
+
+    <!-- ══ THE LEADERBOARD ══ shared with everybody, via the same
+         wall as the wishes and the stars -->
+    <div class="board" id="board">
+      <div class="board__head">
+        <h3 class="board__h">the wall of bests</h3>
+        <p class="board__note" id="board-note">connecting…</p>
+      </div>
+
+      <ol class="board__list" id="board-list">
+        <li class="board__empty">nobody yet. be the first to be competitive about petals.</li>
+      </ol>
+
+      <form class="board__form" id="board-form">
+        <input id="board-name" type="text" maxlength="18" placeholder="your name" aria-label="Your name for the leaderboard" autocomplete="off" />
+        <input id="board-score" type="number" min="0" max="999" placeholder="score" aria-label="Your score" inputmode="numeric" />
+        <button class="btn btn--ghost btn--sm" type="submit">put it up</button>
+      </form>
+      <p class="board__msg" id="board-msg" aria-live="polite"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════ 12 · GUESTBOOK ══════════════════════ -->
+<section class="guestbook" id="guestbook" aria-labelledby="guest-title">
+  <div class="wrap">
+    <p class="kicker"><span>10</span> sign the wall</p>
+    <h2 class="h2" id="guest-title">Leave a <em>dream wish</em>.</h2>
+    <p class="lede">Pipo reads these out loud on her rounds. Be kind — she takes them seriously, and she is definitely listening.</p>
+
+    <form class="wish-form" id="wish-form" novalidate>
+      <label class="visually-hidden" for="wish-name">Your name</label>
+      <input id="wish-name" type="text" maxlength="24" placeholder="your name" autocomplete="name" />
+      <label class="visually-hidden" for="wish-text">Your dream wish</label>
+      <textarea id="wish-text" rows="2" maxlength="140" placeholder="a dream you'd like delivered…" required></textarea>
+      <button class="btn btn--solid" type="submit">pin it to the sky ✦</button>
+      <p class="wish-form__msg" id="wish-msg" aria-live="polite"></p>
+    </form>
+
+    <ul class="wishwall" id="wishwall"></ul>
+    <p class="wishwall__empty" id="wishwall-empty">Nothing pinned yet tonight. Be the first.</p>
+  </div>
+</section>
+
+</main>
+
+<!-- ══════════════════════ FOOTER ══════════════════════ -->
+<footer class="foot">
+  <div class="wrap">
+    <button class="foot__sign" id="foot-sign" type="button">✿ made in 48 hours, mostly at night ✿</button>
+
+    <div class="foot__cols">
+      <div>
+        <h2 class="foot__h">Credits</h2>
+        <p><b>Pipo</b> is an original character invented for <b>haX.baby — Baby's First Website</b> (Track 2). Not affiliated with, and not resembling, any existing franchise.</p>
+        <p>Art direction inspired by Japanese <i>sumi-e</i> ink wash and pastel chibi illustration.</p>
+      </div>
+      <div>
+        <h2 class="foot__h">Built with</h2>
+        <p>Hand-written HTML, CSS &amp; JavaScript. No framework, no build step.<br />
+           <a href="https://threejs.org" rel="noopener">three.js</a> (MIT) ·
+           <a href="https://gsap.com" rel="noopener">GSAP + ScrollTrigger</a> ·
+           <a href="https://github.com/darkroomengineering/lenis" rel="noopener">Lenis</a> (MIT).<br />
+           All libraries vendored locally. Type: <b>Fraunces</b> &amp; <b>Fredoka</b>.</p>
+      </div>
+      <div>
+        <h2 class="foot__h">Sound</h2>
+        <p>Every chime, tune and crack on this site is synthesised live with the Web Audio API. No audio files were harmed.</p>
+      </div>
+    </div>
+
+    <p class="foot__legal">
+      Everything is possible with the power of love and gratitude ·
+      <a href="https://hax.baby/first-website" rel="noopener">haX.baby</a>
+    </p>
+  </div>
+</footer>
+
+<!-- TIME MACHINE -->
+<div class="timemachine" id="timemachine" hidden>
+  <div class="timemachine__panel">
+    <p class="timemachine__kicker">the time machine</p>
+
+    <div class="timemachine__dial">
+      <span class="timemachine__dialnum" id="time-live">000</span>
+      <span class="timemachine__dialunit">hour</span>
+    </div>
+
+    <p class="timemachine__read" id="time-read">morning</p>
+
+    <input class="timemachine__range" id="time-range" type="range"
+           min="0" max="1000" value="0" step="1"
+           aria-label="Time of day, drag to move the sky from morning through to night" />
+
+    <div class="timemachine__ticks" aria-hidden="true">
+      <span>dawn</span><span>noon</span><span>dusk</span><span>night</span>
+    </div>
+
+    <div class="timemachine__foot">
+      <button id="time-mode" class="chip" type="button" aria-pressed="false">auto</button>
+      <button class="chip" id="time-reset" type="button">back to now</button>
+    </div>
+  </div>
+</div>
+
+<!-- WEATHER WORD -->
+<p class="weatherword" id="weather-word" aria-live="polite">the usual. it is always the usual.</p>
+
+<!-- PIPOS TREEHOUSE -->
+<button class="housewindow" id="treehouse-trigger" type="button" hidden></button>
+
+<div class="house" id="treehouse" hidden role="dialog" aria-modal="true" aria-labelledby="house-title">
+  <div class="house__room">
+    <button class="house__close" type="button" aria-label="Leave the treehouse">&times;</button>
+
+    <p class="house__kicker">the fourth mountain, the old tree</p>
+    <h2 class="house__title" id="house-title">pipo&rsquo;s</h2>
+
+    <div class="house__scene">
+      <div class="house__glow" aria-hidden="true"></div>
+
+      <button class="house__thing house__thing--lantern" type="button" data-say="the lantern is for when the sky goes dark before i do." aria-label="A paper lantern"><span aria-hidden="true">&#127807;</span></button>
+      <button class="house__thing house__thing--jar" type="button" data-say="the jar is for buttons. there are nine. they are all from different coats." aria-label="A jar of buttons"><span aria-hidden="true">&#129367;</span></button>
+      <button class="house__thing house__thing--leaf" type="button" data-say="i kept this leaf. i don't know why. it matches nothing." aria-label="One leaf, kept for no reason"><span aria-hidden="true">&#127810;</span></button>
+      <button class="house__thing house__thing--bag" type="button" data-say="the satchel. everything i have ever delivered went through here." aria-label="The satchel"><span aria-hidden="true">&#128188;</span></button>
+
+      <div class="house__pipo" aria-hidden="true">
+        <span class="house__pipo-body"></span>
+        <span class="house__zzz">z</span><span class="house__zzz">z</span><span class="house__zzz">z</span>
+      </div>
+    </div>
+
+    <p class="house__note" id="house-note">she is asleep. wake her?</p>
+
+    <div class="house__acts">
+      <button class="btn btn--solid btn--sm" id="house-wake" type="button">wake her</button>
+      <button class="btn btn--ghost btn--sm" id="house-again" type="button">back outside</button>
+    </div>
+  </div>
+</div>
+
+<!-- PIPO TALKS BACK -->
+<div class="pipo" id="pipo">
+  <div class="pipo__bubble" id="pipo-bubble">
+    <p class="pipo__name">pipo</p>
+    <p class="pipo__text" id="pipo-text" aria-live="polite"></p>
+    <form class="pipo__form" id="pipo-form" novalidate autocomplete="off" onsubmit="return false">
+      <label class="visually-hidden" for="pipo-input">Say something to Pipo</label>
+      <input id="pipo-input" type="text" maxlength="90" placeholder="say something…" autocomplete="off" />
+      <button class="pipo__send" id="pipo-send" type="button" aria-label="Send">&#10047;</button>
+    </form>
+    <p class="pipo__hint">she knows a little. she means all of it.</p>
+  </div>
+  <button class="pipo__btn" id="pipo-btn" type="button" aria-expanded="false" aria-controls="pipo-bubble">
+    <span class="pipo__avatar" aria-hidden="true">✿</span>
+    <span class="pipo__badge">press P to talk</span>
+  </button>
+</div>
+
+<!-- ══════════════════════ FIRST VISIT: WHAT SHOULD I CALL YOU ══════════════════════ -->
+<div class="intro" id="intro" hidden>
+  <div class="intro__card">
+    <p class="intro__kicker">first time here</p>
+    <h2 class="intro__h">what should i call you?</h2>
+    <p class="intro__p">i'm pipo. i remember things — properly, in this browser, on this device. nothing is sent anywhere.</p>
+    <form id="intro-form" novalidate autocomplete="off" onsubmit="return false">
+      <input id="intro-name" type="text" maxlength="24" placeholder="your name" autocomplete="off" />
+      <button class="btn btn--solid" id="intro-go" type="button">remember me &#10022;</button>
+    </form>
+    <button class="intro__skip" id="intro-skip" type="button">just let me in</button>
+  </div>
+</div>
+
+<button id="easter-toast" class="easter-toast" type="button" hidden aria-live="polite"></button>
+<canvas id="confetti" aria-hidden="true"></canvas>
+
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/ScrollTrigger.min.js"></script>
+<script src="vendor/lenis.min.js"></script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

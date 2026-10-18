@@ -1,0 +1,369 @@
+﻿/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   PIPO â€” world.css
+   The world behind the page. One fixed scene that the whole
+   document scrolls *through*:
+
+     sky (morning â†’ noon â†’ dusk â†’ night, continuously)
+     a sun that arcs overhead and sets
+     the mountain
+     the sakura tree, in the foreground
+     blossoms, always falling
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+
+.world{
+  position:fixed; inset:0; z-index:0;
+  overflow:hidden; pointer-events:none;
+  background:
+    linear-gradient(180deg,
+      var(--sky-top) 0%,
+      var(--sky-mid) 52%,
+      var(--sky-bot) 100%);
+  transition:
+    --sky-top .35s linear, --sky-mid .35s linear, --sky-bot .35s linear,
+    --sky-ink .6s linear, --sky-ink-soft .6s linear, --sky-accent .6s linear;
+}
+
+/* â”€â”€ the sun / moon: one body that arcs and changes â”€â”€ */
+.world__sun{
+  position:absolute;
+  width:clamp(5rem,11vw,9rem); aspect-ratio:1;
+  border-radius:50%;
+  left:0; top:0;
+  transform:translate3d(-50%,-50%,0);
+  background:radial-gradient(circle at 40% 38%, #fffdf6, var(--flame) 52%, var(--sakura-lit) 100%);
+  box-shadow:0 0 90px 34px color-mix(in srgb, var(--flame) 55%, transparent);
+  will-change:transform;
+  transition:background 1.2s var(--ease), box-shadow 1.2s var(--ease);
+}
+.world.is-night .world__sun{
+  background:radial-gradient(circle at 38% 36%, #fff, #e6dcff 46%, #cbb2ec 100%);
+  box-shadow:0 0 110px 46px color-mix(in srgb, #cbb2ec 50%, transparent);
+}
+
+/* â”€â”€ clouds â”€â”€ */
+.world__cloud{
+  position:absolute; left:0; top:0;
+  will-change:transform;
+  opacity:.85;
+}
+.world__cloud i{
+  position:absolute; display:block;
+  background:color-mix(in srgb, #fff 88%, transparent);
+  border-radius:50%;
+  filter:blur(.5px);
+}
+.world.is-night .world__cloud i{ background:color-mix(in srgb,#8f7ac0 45%, transparent); }
+
+/* â”€â”€ the mountain: three ridges for depth â”€â”€ */
+.world__ridge{ position:absolute; left:0; right:0; bottom:0; will-change:transform; }
+.world__ridge svg{ display:block; width:100%; height:auto; }
+.world__ridge--far{
+  opacity:.45;
+  bottom:14vh;
+}
+.world__ridge--mid{
+  opacity:.75;
+  bottom:6vh;
+}
+.world__ridge--near{
+  bottom:-2vh;
+}
+.world.is-night .world__ridge path,
+.world.is-night .world__ridge polygon{ }
+.world__ridge--far path{ fill:color-mix(in srgb, var(--lavender) 70%, transparent); }
+.world__ridge--mid path{ fill:color-mix(in srgb, var(--lavender-d) 72%, transparent); }
+.world__ridge--near path{ fill:color-mix(in srgb, var(--ink) 62%, transparent); }
+
+/* snow cap on the far peak */
+.world__cap{ fill:color-mix(in srgb, #fff 88%, transparent); opacity:.9; }
+
+/* â”€â”€ the sakura tree, big, in the near foreground â”€â”€ */
+.world__tree{
+  position:absolute;
+  right:-6vw; bottom:0;
+  width:min(62rem,72vw);
+  will-change:transform;
+  transform-origin:80% 100%;
+  animation:sway 11s var(--ease) infinite;
+  opacity:.96;
+}
+.world__tree svg{ display:block; width:100%; height:auto; }
+.world__tree .branch{ fill:none; stroke:color-mix(in srgb,#4a3358 92%, transparent); stroke-linecap:round; }
+.world__tree .blossom{ fill:var(--sakura); }
+.world__tree .blossom--lit{ fill:var(--sakura-lit); }
+.world__tree .blossom--deep{ fill:var(--sakura-hot); }
+.world.is-night .world__tree .blossom{ fill:color-mix(in srgb,#e8799f 75%, #6a4a9c); }
+.world.is-night .world__tree .blossom--lit{ fill:color-mix(in srgb,#ffd9e4 70%, #8f7ac0); }
+
+@keyframes sway{
+  0%,100%{ transform:rotate(-.7deg) }
+  50%{ transform:rotate(.7deg) }
+}
+
+/* â”€â”€ the falling blossoms ride above the world, below content â”€â”€ */
+.world__petals{
+  position:fixed; inset:0; z-index:1;
+  width:100vw; height:100dvh; pointer-events:none;
+}
+
+/* â”€â”€ stars, only at night â”€â”€ */
+.world__stars{
+  position:absolute; inset:0;
+  opacity:calc(var(--star-op) * .9);
+  transition:opacity 1.2s var(--ease);
+  background-image:
+    radial-gradient(1.4px 1.4px at 12% 18%, #fff, transparent),
+    radial-gradient(1.2px 1.2px at 28% 34%, #fff, transparent),
+    radial-gradient(1.6px 1.6px at 44% 12%, #ffeede, transparent),
+    radial-gradient(1.2px 1.2px at 58% 28%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 72% 20%, #ffd9e4, transparent),
+    radial-gradient(1.2px 1.2px at 86% 36%, #fff, transparent),
+    radial-gradient(1.3px 1.3px at 8% 44%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 94% 12%, #fff, transparent),
+    radial-gradient(1.2px 1.2px at 38% 52%, #ffeede, transparent),
+    radial-gradient(1.4px 1.4px at 64% 48%, #fff, transparent);
+  background-size:100% 100%;
+  animation:twinkle-sky 5s ease-in-out infinite;
+}
+@keyframes twinkle-sky{ 0%,100%{ opacity:.55 } 50%{ opacity:1 } }
+
+/* â”€â”€ light wash so text stays readable over any sky â”€â”€ */
+.world__wash{
+  position:absolute; inset:0;
+  background:linear-gradient(180deg, color-mix(in srgb, var(--sky-bot) 30%, transparent) 0%, transparent 28%, transparent 72%, color-mix(in srgb, var(--sky-bot) 55%, transparent) 100%);
+}
+
+@media (max-width:700px){
+  .world__tree{ width:120vw; right:-24vw; opacity:.9; }
+  .world__ridge--far{ bottom:18vh; }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .world__tree{ animation:none; }
+  .world__stars{ animation:none; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   WEATHER
+   ══════════════════════════════════════════════════════════════ */
+#weather{
+  position:fixed; inset:0; z-index:1;
+  width:100vw; height:100dvh; pointer-events:none;
+}
+
+.weatherword{
+  position:fixed; left:50%; bottom:4.6rem; z-index:56;
+  transform:translateX(-50%);
+  font-family:var(--serif); font-style:italic; font-size:1rem;
+  color:var(--sky-ink-soft);
+  background:color-mix(in srgb, var(--cream) 88%, transparent);
+  border:1.5px solid color-mix(in srgb, var(--sky-accent) 40%, transparent);
+  border-radius:99px; padding:.35rem 1rem;
+  pointer-events:none; max-width:min(90vw,34rem); text-align:center;
+  opacity:0; transition:opacity .5s var(--ease);
+  box-shadow:0 10px 26px -16px rgba(0,0,0,.5);
+}
+.weatherword.is-on{ opacity:1; }
+
+/* rain and storm tint the whole world a little */
+html[data-weather="rain"] .world__wash{
+  background:linear-gradient(180deg, color-mix(in srgb,#7f93b8 22%,transparent), transparent 40%, color-mix(in srgb,#4a5a7a 26%,transparent));
+}
+html[data-weather="storm"] .world{ filter:saturate(.85) brightness(.92); }
+html[data-weather="storm"] .world__wash{
+  background:linear-gradient(180deg, color-mix(in srgb,#2a2340 45%,transparent), transparent 60%, color-mix(in srgb,#1c1630 40%,transparent));
+}
+html[data-weather="snow"] .world__wash{
+  background:linear-gradient(180deg, color-mix(in srgb,#fff 40%,transparent), transparent 45%);
+}
+html[data-weather="clear"] .world__wash{
+  background:linear-gradient(180deg, transparent 60%, color-mix(in srgb,var(--sky-bot) 55%,transparent) 100%);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   THE TIME MACHINE
+   ══════════════════════════════════════════════════════════════ */
+.timemachine{
+  position:fixed; left:50%; top:4.6rem; z-index:120;
+  transform:translate(-50%,-14px);
+  opacity:0; visibility:hidden;
+  transition:opacity .35s var(--ease), transform .35s var(--ease), visibility .35s;
+}
+.timemachine.is-open{ opacity:1; visibility:visible; transform:translate(-50%,0); }
+
+.timemachine__panel{
+  width:min(92vw,26rem);
+  background:color-mix(in srgb,var(--cream) 96%,transparent);
+  border:2px solid color-mix(in srgb,var(--berry) 40%,transparent);
+  border-radius:18px;
+  padding:1.2rem 1.3rem 1rem;
+  box-shadow:0 30px 60px -26px rgba(40,10,50,.7);
+  text-align:center;
+}
+.timemachine__kicker{
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.24em;
+  text-transform:uppercase; color:var(--berry); margin:0 0 .5rem;
+}
+.timemachine__dial{ display:flex; align-items:baseline; justify-content:center; gap:.4rem; }
+.timemachine__dialnum{
+  font-family:var(--mono); font-weight:700;
+  font-size:clamp(2rem,1.5rem + 2vw,2.8rem);
+  color:var(--berry); font-variant-numeric:tabular-nums; line-height:1;
+}
+.timemachine__dialunit{ font-family:var(--mono); font-size:.62rem; letter-spacing:.2em; color:var(--sky-ink-soft); }
+.timemachine__read{
+  font-family:var(--serif); font-style:italic; font-size:1.1rem;
+  color:var(--sky-ink); margin:.2rem 0 .9rem;
+}
+.timemachine__range{
+  width:100%; accent-color:var(--berry); cursor:ew-resize; height:1.8rem;
+}
+.timemachine__ticks{
+  display:flex; justify-content:space-between;
+  font-family:var(--mono); font-size:.55rem; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--sky-ink-soft);
+  margin-top:-.4rem;
+}
+.timemachine__foot{ display:flex; gap:.5rem; justify-content:center; margin-top:1rem; }
+
+/* ══════════════════════════════════════════════════════════════
+   PIPOS TREEHOUSE  (the easter egg)
+   A very small lit window at the foot of the big tree. It is
+   easy to miss, on purpose.
+   ══════════════════════════════════════════════════════════════ */
+.housewindow{
+  position:fixed; left:.5rem; bottom:.5rem; z-index:58;
+  width:2.2rem; height:3rem;
+  border:2px solid #4a3358; border-radius:.3rem .3rem 0 0;
+  background:linear-gradient(180deg,#ffe9a8,#ffbf6b);
+  box-shadow:0 0 18px 6px rgba(255,200,120,.55), 0 0 50px 20px rgba(255,190,110,.28);
+  cursor:pointer; padding:0;
+  opacity:0; transition:opacity 1.4s var(--ease), transform .3s var(--ease);
+}
+.housewindow[hidden]{ display:none; }
+.housewindow::after{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(90deg, transparent 46%, #4a3358 46%, #4a3358 54%, transparent 54%),
+             linear-gradient(180deg, transparent 44%, #4a3358 44%, #4a3358 56%, transparent 56%);
+}
+.housewindow.is-warm{ opacity:.85; animation:winGlow 4s ease-in-out infinite; }
+.housewindow:hover{ opacity:1; transform:scale(1.15); }
+.housewindow.is-found{ opacity:.55; animation:none; }
+@keyframes winGlow{
+  0%,100%{ box-shadow:0 0 14px 4px rgba(255,200,120,.4), 0 0 40px 14px rgba(255,190,110,.2); }
+  50%{ box-shadow:0 0 26px 10px rgba(255,200,120,.75), 0 0 70px 28px rgba(255,190,110,.38); }
+}
+
+/* the room itself
+
+   CRITICAL: opacity:0 does NOT stop an element eating clicks. This
+   overlay is inset:0 at z-index:150, so while it was merely faded out
+   it silently swallowed every click on the entire page — the HUD, the
+   hero buttons, the chat, everything. Hence pointer-events. */
+.house{
+  position:fixed; inset:0; z-index:150;
+  display:grid; place-items:center; padding:var(--gut);
+  background:rgba(28,14,38,.72);
+  opacity:0; visibility:hidden; pointer-events:none;
+  transition:opacity .5s var(--ease), visibility 0s linear .5s;
+}
+.house.is-on{
+  opacity:1; visibility:visible; pointer-events:auto;
+  transition:opacity .5s var(--ease), visibility 0s;
+}
+.house__room{
+  position:relative;
+  width:min(100%,30rem);
+  background:
+    radial-gradient(120% 90% at 50% 0%, #3a2a4e, #241a34 70%);
+  border:3px solid #5a4468; border-radius:16px;
+  padding:1.6rem 1.5rem 1.4rem;
+  box-shadow:0 40px 90px -30px rgba(0,0,0,.85), inset 0 0 70px rgba(0,0,0,.6);
+  color:#f0e2ee; text-align:center;
+  transform:scale(.94); transition:transform .5s var(--ease);
+}
+.house.is-on .house__room{ transform:scale(1); }
+.house__close{
+  position:absolute; top:.5rem; right:.6rem;
+  background:none; border:0; color:#b9a3c9; font-size:1.4rem; line-height:1; cursor:pointer;
+}
+.house__close:hover{ color:#fff; }
+.house__kicker{ font-family:var(--mono); font-size:.58rem; letter-spacing:.2em; text-transform:uppercase; color:#9b83ad; margin:0 0 .3rem; }
+.house__title{ font-family:var(--serif); font-style:italic; font-weight:500; font-size:clamp(1.6rem,1.2rem+1.6vw,2.3rem); margin:0 0 1rem; color:#ffd9e4; }
+
+.house__scene{
+  position:relative; height:12rem; border-radius:12px;
+  background:linear-gradient(180deg,#2c2140,#1b1430);
+  border:1.5px solid #4a3a5c; overflow:hidden;
+}
+.house__glow{
+  position:absolute; inset:auto auto 10% 12%;
+  width:6rem; height:6rem; border-radius:50%;
+  background:radial-gradient(circle,rgba(255,200,120,.4),transparent 65%);
+  animation:glowPulse 5s ease-in-out infinite;
+}
+@keyframes glowPulse{ 0%,100%{opacity:.6; transform:scale(1)} 50%{opacity:1; transform:scale(1.12)} }
+
+.house__thing{
+  position:absolute; background:none; border:0; cursor:pointer;
+  font-size:1.7rem; padding:.3rem; border-radius:10px;
+  transition:transform .25s var(--ease);
+}
+.house__thing:hover{ transform:translateY(-5px) scale(1.2); }
+.house__thing--lantern{ top:12%; left:8%; animation:swayG 5s ease-in-out infinite; }
+.house__thing--jar{ top:16%; right:10%; }
+.house__thing--leaf{ bottom:14%; left:14%; transform:rotate(-16deg); }
+.house__thing--leaf:hover{ transform:translateY(-5px) scale(1.2) rotate(0); }
+.house__thing--bag{ bottom:12%; right:12%; }
+@keyframes swayG{ 0%,100%{transform:rotate(-6deg)} 50%{transform:rotate(6deg)} }
+
+.house__pipo{
+  position:absolute; left:50%; bottom:10%;
+  transform:translateX(-50%);
+  width:4.2rem; height:3.4rem;
+}
+.house__pipo-body{
+  position:absolute; inset:0; border-radius:52% 52% 46% 46%;
+  background:radial-gradient(circle at 36% 28%, #fff1f4, #f4c2d6 45%, #cbb2ec 100%);
+  box-shadow:0 8px 20px -8px rgba(0,0,0,.7), inset 0 -6px 12px rgba(155,122,209,.45);
+  animation:breatheS 3.6s ease-in-out infinite;
+}
+.house__pipo-body::before{
+  content:""; position:absolute; left:18%; right:18%; top:26%; height:34%;
+  background:
+    radial-gradient(circle at 30% 50%, #2a2350 0 22%, transparent 23%),
+    radial-gradient(circle at 70% 50%, #2a2350 0 22%, transparent 23%);
+}
+.house__zzz{
+  position:absolute; left:100%; top:0; font-family:var(--mono);
+  color:#9b83ad; animation:zzz 3s ease-in-out infinite;
+}
+.house__zzz:nth-of-type(2){ animation-delay:.5s; left:112%; top:-8px; }
+.house__zzz:nth-of-type(3){ animation-delay:1s; left:124%; top:-16px; }
+@keyframes zzz{ 0%{opacity:0; transform:translate(0,0) scale(.7)} 40%{opacity:1} 100%{opacity:0; transform:translate(16px,-22px) scale(1.2)} }
+@keyframes breatheS{ 0%,100%{transform:scale(1)} 50%{transform:scale(1.05,0.97)} }
+
+.house.is-awake .house__zzz{ display:none; }
+.house.is-awake .house__pipo-body{
+  animation:happyHop .5s var(--ease) 3;
+  background:radial-gradient(circle at 36% 28%, #fff, #ffd9e4 45%, #e8799f 100%);
+}
+@keyframes happyHop{ 0%,100%{transform:translateY(0)} 40%{transform:translateY(-12px) rotate(6deg)} }
+
+.house__note{
+  font-family:var(--serif); font-style:italic; font-size:1rem;
+  color:#d9c6e0; min-height:2.6em; margin:1.1rem 0 .9rem;
+}
+.house__acts{ display:flex; gap:.6rem; justify-content:center; flex-wrap:wrap; }
+.house__acts .btn--solid{ background:var(--sakura); border-color:var(--sakura); color:#2a1240; }
+.house__acts .btn--solid:hover{ background:#fff; border-color:#fff; color:#2a1240; box-shadow:none; }
+.house__acts .btn--ghost{ border-color:#b9a3c9; color:#d9c6e0; }
+.house__acts .btn--ghost:hover{ background:#b9a3c9; color:#241a34; }
+
+@media (max-width:600px){
+  .housewindow{ left:10vw; bottom:9vh; width:1.8rem; height:2.4rem; }
+  .timemachine{ top:4.2rem; }
+  .weatherword{ font-size:.85rem; bottom:3.6rem; }
+}
+
+

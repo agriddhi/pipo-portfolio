@@ -1,0 +1,29 @@
+# Netlify config — no build step, because there isn't one.
+#
+# The site is vanilla HTML/CSS/JS with libraries vendored locally.
+# There is no npm install, no bundler, and nothing that can fail at
+# 11pm on the last night. That was a deliberate choice and it is
+# also why this file is four lines long.
+
+[build]
+  publish = "."
+  command = ""
+
+# No [[redirects]] on purpose. This is a single page reached through
+# anchor links (#radio, #fortune), not routes, so a catch-all would
+# only add a way to accidentally serve index.html in place of a file.
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "SAMEORIGIN"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+
+# The HTML must never be cached. A judge who loads the page twice
+# should see the build you just deployed, not the one from yesterday.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache, must-revalidate"

@@ -1,0 +1,270 @@
+/* ══════════════════════════════════════════════════════════════
+   PIPO — base layer
+   tokens · reset · typography · sky theming
+   Palette lifted from: haX.baby (#fff8f1 / #a34063 / #5c4033)
+   + sumi-e ink & sakura night-sky reference art
+   ══════════════════════════════════════════════════════════════ */
+
+/* Registered so the sky can actually *animate* between presets
+   instead of snapping. Chromium + Safari + Firefox 128+. */
+@property --sky-top    { syntax: "<color>"; inherits: true; initial-value: #ffe9d6; }
+@property --sky-mid    { syntax: "<color>"; inherits: true; initial-value: #fdfaf6; }
+@property --sky-bot    { syntax: "<color>"; inherits: true; initial-value: #fff8f1; }
+@property --sky-ink    { syntax: "<color>"; inherits: true; initial-value: #3a2350; }
+@property --sky-ink-soft { syntax: "<color>"; inherits: true; initial-value: #5c4033; }
+@property --sky-accent { syntax: "<color>"; inherits: true; initial-value: #e8799f; }
+@property --sky-glow   { syntax: "<color>"; inherits: true; initial-value: rgba(255,205,160,.55); }
+@property --moon-op    { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --petal-op   { syntax: "<number>"; inherits: true; initial-value: .3; }
+@property --star-op    { syntax: "<number>"; inherits: true; initial-value: 0; }
+
+html{
+  transition:
+    --sky-top 1.1s var(--ease), --sky-mid 1.1s var(--ease), --sky-bot 1.1s var(--ease),
+    --sky-ink 1.1s var(--ease), --sky-ink-soft 1.1s var(--ease), --sky-accent 1.1s var(--ease),
+    --sky-glow 1.1s var(--ease), --moon-op 1.1s var(--ease), --petal-op 1.1s var(--ease),
+    --star-op 1.1s var(--ease);
+}
+
+:root{
+  /* ── haX.baby official ── */
+  --cream:      #fff8f1;
+  --berry:      #a34063;
+  --cocoa:      #5c4033;
+
+  /* ── Pipo's palette, lifted straight off the character art ── */
+  --paper:      #fffafc;
+  --ink:        #3a2350;
+  --ink-soft:   #6b4f7a;
+
+  --blush:      #fbdfe9;
+  --sakura:     #f4a6c0;
+  --sakura-hot: #e8799f;
+  --sakura-lit: #ffe6ef;
+  --lavender:   #cbb2ec;
+  --lavender-d: #9b7ad1;
+  --moon:       #fff4e6;
+  --flame:      #f7dcab;
+  --ember:      #e8a45c;
+  --moonlight:  #7f93e8;
+
+  /* ── live sky ── */
+  --sky-top:    #ffe9d6;
+  --sky-mid:    #fdfaf6;
+  --sky-bot:    #fff8f1;
+  --sky-ink:    #3a2350;
+  --sky-ink-soft: #5c4033;
+  --sky-accent: #e8799f;
+  --sky-glow:   rgba(255,205,160,.55);
+  --moon-op:    0;
+  --petal-op:   .3;
+  --star-op:    0;
+
+  /* ── type ── */
+  --serif: "Fraunces", "Iowan Old Style", Georgia, serif;
+  --bubbly: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, monospace;
+
+  /* ── metrics ── */
+  --wrap: 74rem;
+  --gut: clamp(1.1rem, 4vw, 3rem);
+  --rad: 14px;
+  --ease: cubic-bezier(.22,.8,.28,1);
+}
+
+html[data-sky="dusk"]{
+  --sky-top:#f7c9c6; --sky-mid:#e6a8c4; --sky-bot:#f9dfd6;
+  --sky-ink:#43204f; --sky-ink-soft:#7a4570; --sky-accent:#d8649a;
+  --sky-glow:rgba(255,180,200,.6); --moon-op:.4; --petal-op:.6; --star-op:.3;
+}
+
+html[data-sky="night"]{
+  --sky-top:#0e0f2e; --sky-mid:#1c1543; --sky-bot:#3a1f4d;
+  --sky-ink:#fdeef8; --sky-ink-soft:#d7b6dc; --sky-accent:#f4a6c0;
+  --sky-glow:rgba(255,170,200,.35); --moon-op:1; --petal-op:.95; --star-op:1;
+}
+
+/* ══════════════════════════ RESET ══════════════════════════ */
+*,*::before,*::after{ box-sizing:border-box; }
+html{ -webkit-text-size-adjust:100%; }
+
+/* THE HIDDEN ATTRIBUTE MUST ALWAYS WIN.
+
+   The browser's own [hidden]{display:none} is a user-agent rule, so ANY
+   author rule that sets `display` beats it. `.house{display:grid}` did
+   exactly that: the treehouse kept rendering as an invisible
+   full-screen overlay at z-index:150 and silently ate every click on
+   the site. It looked broken and nothing was clickable.
+
+   This one line makes `hidden` mean hidden, forever, everywhere. */
+[hidden]{ display:none!important; }
+
+/* ── Lenis: the required CSS. Without these, smooth scroll fights
+   the browser and the page can feel "stuck". ── */
+html.lenis, html.lenis body{ height:auto; }
+.lenis:not(.lenis-autoToggle){ scroll-behavior:auto!important; }
+.lenis.lenis-smooth{ scroll-behavior:auto!important; }
+.lenis.lenis-smooth [data-lenis-prevent]{ overscroll-behavior:contain; }
+.lenis.lenis-stopped{ overflow:hidden; }
+.lenis.lenis-scrolling iframe{ pointer-events:none; }
+
+/* `clip`, never `hidden`. Setting overflow-x:hidden on body turns the
+   body into a scroll container, which silently kills Lenis and makes
+   the whole page feel unscrollable. */
+html{ overflow-x:clip; }
+body{
+  margin:0;
+  min-height:100%;
+  overflow-x:clip;
+  overscroll-behavior-y:none;
+  background:var(--sky-bot);
+  color:var(--sky-ink);
+  font-family:var(--bubbly);
+  font-weight:400;
+  font-size:clamp(1rem,.96rem + .2vw,1.075rem);
+  line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+img,svg,canvas{ display:block; max-width:100%; }
+button,input,textarea{ font:inherit; color:inherit; }
+button{ cursor:pointer; }
+h1,h2,h3{ margin:0; line-height:1.02; letter-spacing:-.02em; font-weight:600; }
+p{ margin:0 0 .85em; }
+p:last-child{ margin-bottom:0; }
+ul,ol{ margin:0; padding:0; list-style:none; }
+a{ color:inherit; }
+
+::selection{ background:var(--sakura); color:#fff; }
+
+:focus-visible{
+  outline:3px dashed var(--berry);
+  outline-offset:4px;
+  border-radius:4px;
+}
+
+/* ══════════════════════════ TYPE SCALE ══════════════════════════ */
+.h2{
+  font-family:var(--serif);
+  font-optical-sizing:auto;
+  font-weight:600;
+  font-size:clamp(2.1rem,1.3rem + 3.6vw,4.4rem);
+  font-variation-settings:"SOFT" 20,"WONK" 1;
+  letter-spacing:-.028em;
+  max-width:16ch;
+  margin:0 0 .5em;
+  color:var(--sky-ink);
+  transition:color .8s var(--ease);
+}
+.h2 em{
+  font-style:italic;
+  font-weight:400;
+  color:var(--sky-accent);
+}
+.kicker{
+  font-family:var(--mono);
+  font-size:.72rem;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  color:var(--sky-ink-soft);
+  margin:0 0 1.4rem;
+  display:flex; align-items:center; gap:.7rem;
+  transition:color .8s var(--ease);
+}
+.kicker span{
+  font-family:var(--bubbly);
+  font-size:.7rem;
+  background:var(--sky-accent);
+  color:#fff;
+  padding:.15em .6em;
+  border-radius:99px;
+  letter-spacing:.08em;
+}
+.lede{
+  font-family:var(--serif);
+  font-size:clamp(1.05rem,1rem + .5vw,1.4rem);
+  font-weight:300;
+  max-width:46ch;
+  color:var(--sky-ink-soft);
+  margin-bottom:2.6rem;
+  transition:color .8s var(--ease);
+}
+.visually-hidden{
+  position:absolute!important; width:1px;height:1px;
+  padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;
+}
+.skip-link{
+  position:fixed; top:-100px; left:12px; z-index:999;
+  background:var(--berry); color:#fff; padding:.7em 1.2em;
+  border-radius:0 0 10px 10px; text-decoration:none; font-weight:500;
+  transition:top .25s var(--ease);
+}
+.skip-link:focus{ top:0; }
+
+/* ══════════════════════════ LAYOUT ══════════════════════════
+   The stacking order, top to bottom, written down once:
+     200 gate        190 intro       75 transitions
+      65 confetti     62 pipo        60 hud / odometer
+       6 sparkle      5 nightlight   4 grain + vignette
+       3 content      2 3D chibi     1 petals      0 world
+   ══════════════════════════ */
+.wrap{ width:min(100% - (var(--gut) * 2), var(--wrap)); margin-inline:auto; }
+
+section{ position:relative; z-index:3; }
+
+/* ══════════════════════════ AMBIENT LAYERS ══════════════════════════ */
+#gl{
+  position:fixed; inset:0;
+  width:100vw; height:100dvh;
+  z-index:2; pointer-events:none;
+  opacity:0; transition:opacity 1.4s var(--ease);
+}
+#gl.ready{ opacity:1; }
+
+#petals{
+  position:fixed; inset:0;
+  width:100vw; height:100dvh;
+  z-index:1; pointer-events:none;
+}
+#sparkle{
+  position:fixed; inset:0;
+  width:100vw; height:100dvh;
+  z-index:6; pointer-events:none;
+}
+
+/* the nightlight / torch cursor mask */
+#nightlight{
+  position:fixed; inset:0; z-index:5;
+  pointer-events:none; opacity:0;
+  transition:opacity .5s var(--ease);
+  background:radial-gradient(320px 320px at var(--nx,50%) var(--ny,50%),
+    rgba(255,238,214,.92) 0%,
+    rgba(255,225,190,.55) 26%,
+    rgba(255,210,170,.18) 48%,
+    transparent 70%);
+  mix-blend-mode:screen;
+}
+#nightlight.on{ opacity:1; }
+
+/* A full-screen animated noise layer repaints the whole viewport 24
+   times a second. It is the single most expensive thing on the page
+   and nobody consciously sees it — so it is now a static texture. */
+.grain{
+  position:fixed; inset:0; z-index:4; pointer-events:none; opacity:.11;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+}
+.vignette{
+  position:fixed; inset:0; z-index:4; pointer-events:none;
+  background:radial-gradient(130% 100% at 50% 0%, transparent 55%, rgba(60,30,50,.24) 100%);
+  opacity:.6;
+}
+
+body[data-chaos="on"] .grain,
+body[data-chaos="on"] .vignette{ display:none; }
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms!important; animation-iteration-count:1!important;
+    transition-duration:.001ms!important; scroll-behavior:auto!important;
+  }
+}

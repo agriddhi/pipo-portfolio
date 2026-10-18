@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-chaos="on">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>PIPO.EXE — chaos mode</title>
+<meta name="description" content="Chaos mode. Pipo is unwell. Feed her before she sneezes on everything." />
+<meta name="robots" content="noindex" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✿</text></svg>" />
+<link rel="stylesheet" href="css/base.css" />
+<link rel="stylesheet" href="css/site.css" />
+<link rel="stylesheet" href="css/chaos.css" />
+</head>
+
+<body class="chaospage">
+
+<!-- ══════════════════ THE EARLY-WEB FURNITURE ══════════════════
+     This is the "Responsive Chaos Mode" side quest: marquees, a tiled
+     floor, a taskbar, a desktop, a window, and a door that runs away
+     from you. It used to sit on top of the real website. It lives
+     here now, where it can misbehave without costing anyone a working
+     page.
+
+     Everything in here is FIXED and behind the game. The windows that
+     used to cover the controls live further down the page instead. -->
+<div class="chaos-layer" id="chaos-layer" aria-hidden="true">
+  <div class="marquee marquee--top"><div class="marquee__track" id="marquee-a"></div></div>
+  <div class="marquee marquee--bottom"><div class="marquee__track" id="marquee-b"></div></div>
+  <div class="tiles"></div>
+</div>
+
+<!-- ══════════════════ BACK TO THE REAL SITE ══════════════════ -->
+<header class="chaos-head">
+  <a class="chaos-head__back" href="index.html">
+    <span aria-hidden="true">◀</span> back to the website
+  </a>
+  <span class="chaos-head__title">CHAOS MODE</span>
+  <span class="chaos-head__esc">esc</span>
+</header>
+
+<!-- ══════════════════ THE GAME ══════════════════ -->
+<main class="chaos-main">
+
+  <section class="chaos-hud">
+    <div class="chaos-hud__block">
+      <b class="chaos-hud__label">caught</b>
+      <b class="chaos-hud__value" id="chaos-score">0</b>
+    </div>
+
+    <div class="chaos-meter">
+      <div class="chaos-meter__head">
+        <b class="chaos-hud__label">her mood</b>
+        <b class="chaos-meter__word" id="chaos-word">perfectly fine</b>
+      </div>
+      <div class="chaos-meter__track"><i id="chaos-fill"></i></div>
+    </div>
+
+    <div class="chaos-hud__block chaos-hud__block--right">
+      <b class="chaos-hud__label">time</b>
+      <b class="chaos-hud__value" id="chaos-time">0:00</b>
+    </div>
+  </section>
+
+  <!-- the arena -->
+  <div class="chaos-arena" id="chaos-room-scene">
+    <canvas id="chaos-gl" aria-label="Pipo flying about at high speed"></canvas>
+    <p class="chaos-sr" role="status" aria-live="polite" id="chaos-live"></p>
+
+    <!-- food tray -->
+    <div class="chaos-tray">
+      <div class="chaos-tray__food" id="chaos-food" role="group" aria-label="Pick something to throw"></div>
+      <button class="chaos-throw" id="chaos-throw" type="button">
+        THROW IT <i>space</i>
+      </button>
+    </div>
+
+    <!-- game over -->
+    <div class="chaos-over" id="chaos-over" hidden>
+      <div class="chaos-over__win">
+        <p class="chaos-over__title">ACHOO.</p>
+        <p class="chaos-over__msg" id="chaos-over-msg"></p>
+        <button class="chaos-over__again" id="chaos-again" type="button">again</button>
+        <p class="chaos-over__esc">or press esc to go back to the website</p>
+      </div>
+    </div>
+  </div>
+
+  <p class="chaos-hint" id="chaos-hint">she is unwell. throw her something.</p>
+
+  <p class="chaos-rules">
+    <b>how it works.</b> she flies faster the longer you leave her, and faster still the angrier she gets.
+    pick a snack, throw it, and try to lead the throw — she is moving. a catch calms her right down.
+    a miss makes it worse. let her hit <b>100%</b> and she sneezes, and the room fills with petals.
+  </p>
+</main>
+
+<!-- ══════════════════ THE WINDOWS, BELOW THE GAME ══════════════════
+     These used to be fixed to the corners of the screen, which put
+     "still no cookies", "DO NOT PET THE PIXELS" and PIPO.EXE straight
+     over the mood meter and the food tray. Down here they are ordinary
+     markup in a row, so overlapping them is not something you can
+     even express. The door stays fixed, because it is supposed to
+     dodge you. -->
+<section class="chaos-strip" id="chaos-strip">
+  <div class="chaos-win">
+    <p class="chaos-win__title">PIPO.EXE</p>
+    <p class="blink">█ UNDER CONSTRUCTION █</p>
+    <p class="chaos-win__meta">window: <span id="chaos-dims">0×0</span></p>
+    <p class="chaos-win__meta">best viewed in 800×600</p>
+  </div>
+
+  <div class="chaos-extra" id="chaos-extra"></div>
+</section>
+
+<script type="module">
+  import { initChaosPage } from "./js/chaospage.js";
+  import { initChaos } from "./js/chaos.js";
+  import { audio } from "./js/audio.js";
+
+  // the early-web furniture, forced on regardless of what was saved
+  try { initChaos({ force: true }); } catch (e) { console.warn("[pipo] chaos furniture:", e); }
+
+  // it is a noisy page; she needs a tap before the WebGL starts making noise
+  const begin = () => audio.resume();
+  addEventListener("pointerdown", begin, { once: true });
+  addEventListener("keydown", begin, { once: true });
+
+  try { initChaosPage(); }
+  catch (e) { console.warn("[pipo] chaos page:", e); }
+
+  // keep it honest if the tab is hidden
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) audio.setMuted(true);
+  });
+</script>
+
+</body>
+</html>
