@@ -81,5 +81,7 @@ create policy "anyone can post garden" on public.garden for insert with check (t
 --      Project URL        https://xxxxxxxxxxxx.supabase.co
 --      anon public key    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 --
---  Paste those into js/config.js and the walls switch to Supabase.
+--  Paste both into the `supa()` function in js/shared.js, replacing
+--  YOUR-PROJECT and YOUR-ANON-KEY. That is the whole integration —
+--  the walls switch over on the next reload.
 -- ══════════════════════════════════════════════════════════════

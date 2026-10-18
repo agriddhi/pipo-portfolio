@@ -198,24 +198,33 @@ function antler(len) {
    blue, with subtle iridescence."
 
    Rather than an expensive iridescence shader, the four scale
-   materials drift a few degrees of hue on a slow sine. It costs four
-   colour writes per frame and reads exactly like the artwork when
-   she is small — which is most of the time. */
+   materials drift a few degrees of hue on a slow sine.
+
+   IMPORTANT — the drift must be computed from a FIXED base colour,
+   never from the material's current colour. Reading the current
+   colour and adding a delta makes this an integrator: called at
+   60fps it compounds 60x a second, slams lightness into the clamps
+   and makes her visibly change colour every couple of seconds. The
+   base hues are captured once, the output is always absolute. */
 const _hue = { h: 0, s: 0, l: 0 };
+const BASE = new Map();
 function shimmer(t) {
-  const k = Math.sin(t * 0.35);
-  const set = (mat, dl, ds) => {
-    mat.color.getHSL(_hue);
+  const k = Math.sin(t * 0.35);          // period ~18s
+  const set = (mat, hAmp, lAmp, sAmp) => {
+    let b = BASE.get(mat);
+    if (!b) { mat.color.getHSL(_hue); b = BASE.set(mat, { ..._hue }).get(mat); }
     mat.color.setHSL(
-      (_hue.h + 0.012 * k + 1) % 1,
-      THREE.MathUtils.clamp(_hue.s + ds, 0, 1),
-      THREE.MathUtils.clamp(_hue.l + dl, 0, 1)
+      (b.h + hAmp * k + 1) % 1,
+      THREE.MathUtils.clamp(b.s + (sAmp || 0) * k, 0, 1),
+      THREE.MathUtils.clamp(b.l + lAmp * k, 0, 1)
     );
   };
-  set(mScaleLow, 0.012 * k, 0);
-  set(mScaleMid, 0.008 * k, 0);
-  set(mScaleTop, 0.016 * k, 0.02 * k);
-  set(mScaleCool, -0.014 * k, 0.03 * k);
+  /* amplitudes are deliberately tiny — a whisper of iridescence,
+     not a colour-changing toy */
+  set(mScaleLow,  0.004,  0.006, 0);
+  set(mScaleMid,  0.003,  0.004, 0);
+  set(mScaleTop,  0.005,  0.005, 0.008);
+  set(mScaleCool, 0.005, -0.005, 0.010);
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -327,7 +336,7 @@ export function buildPipo({ chibi = true } = {}) {
   smile.rotation.set(Math.PI / 2, 0, Math.PI * 0.15);
   head.add(smile);
 
-  /* ══ THE MANE ══
+  /* == THE MANE ==
      A halo of overlapping soft blobs behind and around the skull,
      swept to one side the way the artwork does. She is mostly mane. */
   const mane = new THREE.Group();
@@ -354,7 +363,7 @@ export function buildPipo({ chibi = true } = {}) {
   // strands standing up and off to the side
   for (let i = 0; i < 6; i++) {
     const t = (i - 2.5) / 2.5;
-    const sp = outlined(new THREE.ConeGeometry(P.head * 0.19, P.head * 0.66, 5), i % 2 ? mMane : mManeDeep, { w: 1.05, inkColor: C.maneDeep });
+    const sp = outlined(new THREE.ConeGeometry(P.head * 0.19, P.head * 0.66, 5), i % 2 ? mMane : mManeDeep, { w: 1.06, inkColor: C.maneDeep });
     sp.position.set(t * P.head * 0.62 + P.head * 0.1, P.head * (1.02 - Math.abs(t) * 0.18), -P.head * 0.16);
     sp.rotation.z = -t * 0.85;
     mane.add(sp);
